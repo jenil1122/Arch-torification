@@ -128,13 +128,10 @@ sleep 1.5
 clear
 
 
-#!/bin/bash
-
-# Define color codes
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-# Function to display Tor options
+
 display_tor_options() {
     echo "Tor Options:"
     echo
@@ -144,7 +141,7 @@ display_tor_options() {
     echo
 }
 
-# Function to restart network services
+
 restart_network_services() {
     if systemctl status NetworkManager &> /dev/null; then
         echo -e "${GREEN}Restarting NetworkManager service...${NC}"
@@ -154,11 +151,11 @@ restart_network_services() {
     fi
 }
 
-# Display Tor options and get user choice
+
 display_tor_options
 read -p "Enter your choice: " tc
 
-# Handle user choice
+
 case $tc in
     1)
         echo -e "${GREEN}Starting SystemTor...${NC}"
