@@ -28,3 +28,8 @@ Arch-torification boosts Linux security by leveraging the power of Tor for anony
 Yay   ```yay -S arch-torification```
 
 Paru ```Paru -S arch-torification```
+
+<a href="https://github.com" target="_blank">GitHub</a>
+
+Additionally, you may also install [nyx](https://nyx.torproject.org/) to change Tor circuit connections.
+
