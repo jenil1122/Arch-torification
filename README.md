@@ -30,5 +30,6 @@ Yay   ```yay -S arch-torification```
 Paru ```Paru -S arch-torification```
 
 
-Additionally, you may also install [nyx](https://nyx.torproject.org/) to change Tor circuit connections.
+
+# Additionally, you may also install [nyx](https://nyx.torproject.org/) to change Tor circuit connections.
 
