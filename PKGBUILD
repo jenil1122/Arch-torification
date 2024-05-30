@@ -9,6 +9,7 @@ license=('GPL')
 source=("https://github.com/jenil1122/Arch-torification/releases/download/${pkgver}/arch-torify")
 sha256sums=('SKIP')
 conflicts=("arch-torify")
+export LDFLAGS+=" -Wl,-z,relro,-z,now"
 
 
 package() {
