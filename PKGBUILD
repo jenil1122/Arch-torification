@@ -1,5 +1,5 @@
 # Maintainer: Jenil
-pkgname=arch-torify
+pkgname=arch-torification
 pkgver=1.0
 pkgrel=1
 pkgdesc="A tool for full system torification of Arch Linux"
