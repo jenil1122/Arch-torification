@@ -3,7 +3,7 @@ Arch-torification boosts Linux security by leveraging the power of Tor for anony
 
  -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-#Installation
+# Installation
 
 1. ``` git clone https://github.com/jenil1122/Arch-torification.git ```
 
@@ -22,3 +22,9 @@ Arch-torification boosts Linux security by leveraging the power of Tor for anony
    mv arch-torify /usr/bin
    ```
 3. reopen Terminal and use arch-torify
+ 
+ # OR
+
+Yay   ```yay -S arch-torification```
+
+Paru ```Paru -S arch-torification```
