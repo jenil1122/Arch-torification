@@ -5,8 +5,10 @@ Arch-torification boosts Linux security by leveraging the power of Tor for anony
 
 #Installation
 
-1 ``` git clone ```
+1 ``` git clone https://github.com/jenil1122/Arch-torification.git ```
 
-2 ``` chmod +x Arch-torify.sh ```
+2 ``` cd Arch-torification```
 
-3 ``` bash arch-torify.sh ```
+3 ``` chmod +x Arch-torify.sh ```
+
+4 ``` bash arch-torify.sh ```
