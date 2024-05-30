@@ -1,0 +1,12 @@
+pkgbase = arch-torify
+	pkgdesc = A tool for full system torification of Arch Linux
+	pkgver = 1.0
+	pkgrel = 1
+	url = https://github.com/jenil1122/Arch-torification
+	arch = x86_64
+	license = GPL
+	conflicts = arch-torify
+	source = https://github.com/jenil1122/Arch-torification/releases/download/1.0/arch-torify
+	sha256sums = SKIP
+
+pkgname = arch-torify
