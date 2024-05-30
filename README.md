@@ -9,9 +9,9 @@ Arch-torification boosts Linux security by leveraging the power of Tor for anony
 
 2. ```cd Arch-torification```
 
-3. ``` chmod +x arch-torify.sh ```
+3. ``` chmod +x arch-torification.sh ```
 
-4. ``` bash arch-torify.sh ```
+4. ``` bash arch-torification.sh ```
 
 # OR 
 
