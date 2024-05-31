@@ -3,6 +3,26 @@ Arch-torification boosts Linux security by leveraging the power of Tor for anony
 
  -----------------------------------------------------------------------------------------------------------------------------------------------------
 
+# Usage
+
+
+GUI 
+
+ ```arch-torification```
+
+CLI
+
+``` 
+  --setup       Required To Do only Once
+  --start-tor   Start Tor and related services
+  --stop-tor    Stop Tor and related services
+  --status      Check status of Tor and related services
+  --help        Display this help message
+```
+
+ -----------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 # Installation
 
 1. ``` git clone https://github.com/jenil1122/Arch-torification.git ```
@@ -35,22 +55,7 @@ Additionally, you may also install [nyx](https://nyx.torproject.org/) to change 
 
  -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Usage
 
-
-# for GUI 
-
- ```arch-torification```
-
-# for CLI
-
-``` 
-  --setup       Required To Do only Once
-  --start-tor   Start Tor and related services
-  --stop-tor    Stop Tor and related services
-  --status      Check status of Tor and related services
-  --help        Display this help message
-```
 
 
 
