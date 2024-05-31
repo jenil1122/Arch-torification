@@ -184,12 +184,24 @@ while true; do
             echo # Line spacing
             ;;
         2)
-            echo -e "${G}Starting SystemTor...${N}"
-            sudo systemctl start tor
-            echo -e "${G}Starting iptables service...${N}"
-            sudo systemctl start iptables
-            echo -e "${G}Starting ip6tables service...${N}"
-            sudo systemctl start ip6tables
+            printf "systemctl tor status: "
+            if ! systemctl is-active tor; then
+                echo -e "${R}Tor is not running.${N}"
+                echo -e "${G}Starting SystemTor...${N}"
+                sudo systemctl start tor && echo -e "${G}Started Tor service.${N}" || echo -e "${R}Failed to start Tor service.${N}"
+            fi
+            printf "systemctl iptables status: "
+            if ! systemctl is-active iptables; then
+                echo -e "${R}iptables service is not running.${N}"
+                echo -e "${G}Starting iptables service...${N}"
+                sudo systemctl start iptables && echo -e "${G}Started iptables service.${N}" || echo -e "${R}Failed to start iptables service.${N}"
+            fi
+            printf "systemctl ip6tables status:"
+            if ! systemctl is-active ip6tables; then
+                echo -e "${R}ip6tables service is not running.${N}"
+                echo -e "${G}Starting ip6tables service...${N}"
+                sudo systemctl start ip6tables && echo -e "${G}Started ip6tables service.${N}" || echo -e "${R}Failed to start ip6tables service.${N}"
+            fi
             restart_network_services
             echo # Line spacing
             ;;
@@ -222,12 +234,24 @@ R="\e[31m" # Red color
 N="\e[0m"  # Reset color
 
 start_tor() {
-    echo -e "${G}Starting SystemTor...${N}"
-    sudo systemctl start tor
-    echo -e "${G}Starting iptables service...${N}"
-    sudo systemctl start iptables
-    echo -e "${G}Starting ip6tables service...${N}"
-    sudo systemctl start ip6tables
+    printf "systemctl tor status: "
+    if ! systemctl is-active tor; then
+        echo -e "${R}Tor is not running.${N}"
+        echo -e "${G}Starting SystemTor...${N}"
+        sudo systemctl start tor && echo -e "${G}Started Tor service.${N}" || echo -e "${R}Failed to start Tor service.${N}"
+    fi
+    printf "systemctl iptables status: "
+    if ! systemctl is-active iptables; then
+        echo -e "${R}iptables service is not running.${N}"
+        echo -e "${G}Starting iptables service...${N}"
+        sudo systemctl start iptables && echo -e "${G}Started iptables service.${N}" || echo -e "${R}Failed to start iptables service.${N}"
+    fi
+    printf "systemctl ip6tables status:"
+    if ! systemctl is-active ip6tables; then
+        echo -e "${R}ip6tables service is not running.${N}"
+        echo -e "${G}Starting ip6tables service...${N}"
+        sudo systemctl start ip6tables && echo -e "${G}Started ip6tables service.${N}" || echo -e "${R}Failed to start ip6tables service.${N}"
+    fi
     restart_network_services
     echo # Line spacing
 }
@@ -286,8 +310,12 @@ restart_network_services() {
 setup() {
 
     if [ -d "/etc/iptables" ]; then
-        echo "Removing existing files in /etc/iptables directory..."
-        sudo rm -rf /etc/iptables/*
+        echo "Backing up existing files in /etc/iptables directory into /etc/iptables.old..."
+        if [ -n "$(ls -A /etc/iptables/)" ]; then 
+            sudo mv /etc/iptables /etc/iptables.old
+        else
+            echo "Directory /etc/iptables is empty."
+        fi
     else
         echo "Creating /etc/iptables directory..."
         sudo mkdir -p /etc/iptables
