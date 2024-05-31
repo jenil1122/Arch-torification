@@ -31,5 +31,26 @@ Paru ```Paru -S arch-torification```
 
 
 
-# Additionally, you may also install [nyx](https://nyx.torproject.org/) to change Tor circuit connections.
+Additionally, you may also install [nyx](https://nyx.torproject.org/) to change Tor circuit connections.
+
+ -----------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Usage
+
+
+# for GUI 
+
+ ```arch-torification```
+
+# for CLI
+
+``` 
+  --setup       Required To Do only Once
+  --start-tor   Start Tor and related services
+  --stop-tor    Stop Tor and related services
+  --status      Check status of Tor and related services
+  --help        Display this help message
+```
+
+
 
