@@ -234,29 +234,66 @@ R="\e[31m" # Red color
 N="\e[0m"  # Reset color
 
 start_tor() {
+    if ! command -v tor &> /dev/null; then
+        echo -e "${R}Tor is not installed.${N}"
+        echo "Maybe you forgot to run arch-torification --setup."
+        exit 1
+    fi
+
+    if ! command -v iptables &> /dev/null; then
+        echo -e "${R}iptables is not installed.${N}"
+        echo "Maybe you forgot to run arch-torification --setup."
+        exit 1
+    fi
+
     printf "systemctl tor status: "
     if ! systemctl is-active tor; then
         echo -e "${R}Tor is not running.${N}"
         echo -e "${G}Starting SystemTor...${N}"
         sudo systemctl start tor && echo -e "${G}Started Tor service.${N}" || echo -e "${R}Failed to start Tor service.${N}"
     fi
+
     printf "systemctl iptables status: "
     if ! systemctl is-active iptables; then
         echo -e "${R}iptables service is not running.${N}"
         echo -e "${G}Starting iptables service...${N}"
         sudo systemctl start iptables && echo -e "${G}Started iptables service.${N}" || echo -e "${R}Failed to start iptables service.${N}"
     fi
+
     printf "systemctl ip6tables status:"
     if ! systemctl is-active ip6tables; then
         echo -e "${R}ip6tables service is not running.${N}"
         echo -e "${G}Starting ip6tables service...${N}"
         sudo systemctl start ip6tables && echo -e "${G}Started ip6tables service.${N}" || echo -e "${R}Failed to start ip6tables service.${N}"
     fi
+
     restart_network_services
     echo # Line spacing
 }
 
 stop_tor() {
+
+    if ! command -v tor &> /dev/null || ! command -v iptables &> /dev/null; then
+        echo -e "${R}Tor or iptables is not installed.${N}"
+        echo "Maybe you forgot to run arch-torification --setup."
+        exit 1
+    fi
+
+    if ! systemctl is-active tor &> /dev/null; then
+        echo -e "${R}Tor is not running.${N}"
+        exit 1
+    fi
+
+    if ! systemctl is-active iptables &> /dev/null; then
+        echo -e "${R}iptables service is not running.${N}"
+        exit 1
+    fi
+
+    if ! systemctl is-active ip6tables &> /dev/null; then
+        echo -e "${R}ip6tables service is not running.${N}"
+        exit 1
+    fi
+
     echo -e "${G}Stopping SystemTor${N}"
     sudo systemctl stop tor
     echo -e "${G}Stopping iptables service...${N}"
@@ -309,6 +346,20 @@ restart_network_services() {
 
 setup() {
 
+    if ! command -v tor &> /dev/null; then
+        echo -e "${R}Tor is not installed.${N}"
+        echo "Installing Tor..."
+        sudo pacman -S tor 
+        echo "Tor installed successfully."
+    fi
+
+    if ! command -v iptables &> /dev/null; then
+        echo -e "${R}iptables is not installed.${N}"
+        echo "Installing iptables..."
+        sudo pacman -S iptables
+        echo "iptables installed successfully."
+    fi
+
     if [ -d "/etc/iptables" ]; then
         echo "Backing up existing files in /etc/iptables directory into /etc/iptables.old..."
         if [ -n "$(ls -A /etc/iptables/)" ]; then 
@@ -320,7 +371,9 @@ setup() {
         echo "Creating /etc/iptables directory..."
         sudo mkdir -p /etc/iptables
     fi
-
+    
+    sudo touch /etc/iptables/iptables.rules
+    sudo touch /etc/iptables/ip6tables.rules
     sudo tee /etc/iptables/iptables.rules /etc/iptables/ip6tables.rules > /dev/null <<EOF
 *nat
 :PREROUTING ACCEPT [6:2126]
