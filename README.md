@@ -25,25 +25,15 @@ CLI
 
 # Installation
 
-1. ``` git clone https://github.com/jenil1122/Arch-torification.git ```
+1. ```  git clone https://github.com/jenil1122/Arch-torification.git ```
 
-2. ```cd Arch-torification```
+3. ```cd Arch-torification```
 
-3. ``` chmod +x arch-torification.sh ```
+4. ``` chmod +x arch-torification.sh ```
 
-4. ``` bash arch-torification.sh ```
+5. ``` bash arch-torification ```
 
-# OR 
-
-1. Download executable Binary From Releases 
-
-2. Move it to /usr/bin
-   ```
-   mv arch-torify /usr/bin
-   ```
-3. reopen Terminal and use arch-torify
- 
- # OR
+# OR
 
 Yay   ```yay -S arch-torification```
 
