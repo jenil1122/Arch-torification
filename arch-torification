@@ -437,7 +437,7 @@ gui() {
         case $choice in
             1)
                 c_setup
-                sleep 0.6
+                sleep 1
                 clear
                 ;;
             2)
@@ -448,7 +448,7 @@ gui() {
                 else
                     echo -e "${RED}Error: Tor configuration check failed. Cannot start Tor services.${NC}"
                 fi
-                sleep 0.6
+                sleep 1
                 clear
                 ;;
             3)
@@ -459,12 +459,12 @@ gui() {
                 else
                     echo -e "${RED}Error: Tor configuration check failed. Cannot stop Tor services.${NC}"
                 fi
-                sleep 0.6
+                sleep 1
                 clear
                 ;;
             4)
                 c_status_services
-                sleep 1
+                sleep 1.5
                 clear
                 ;;
             5)
