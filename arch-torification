@@ -7,7 +7,6 @@ NC='\033[0m'
 c_check_tor() {
     echo ""
 
-    # Check for tor
     if command -v tor >/dev/null 2>&1; then
         echo -e "${GREEN}tor is installed.${NC}"
     else
@@ -21,7 +20,6 @@ c_check_tor() {
 c_check_iptables() {
     echo ""
 
-    # Check for iptables
     if command -v iptables >/dev/null 2>&1; then
         echo -e "${GREEN}iptables is installed.${NC}"
     else
@@ -38,7 +36,6 @@ c_check_torrc() {
 
     echo "Checking /etc/tor/torrc for required settings..."
 
-    # Check if the torrc file exists
     if [ ! -f "$file" ]; then
         echo -e "${RED}Error: Torrc file not found.${NC}"
         return 1
@@ -182,14 +179,14 @@ c_stop_services() {
 }
 
 c_status_services() {
-    echo -e "${GREEN}Checking status of Tor service...${NC}"
+    echo ""
     if systemctl is-active --quiet tor.service; then
         echo -e "${GREEN}Tor service is running.${NC}"
     else
         echo -e "${RED}Tor service is not running.${NC}"
     fi
 
-    echo -e "${GREEN}Checking status of iptables service...${NC}"
+    echo ""
 
     if systemctl is-active --quiet iptables.service; then
         echo -e "${GREEN}iptables service is running.${NC}"
@@ -197,7 +194,7 @@ c_status_services() {
         echo -e "${RED}iptables service is not running.${NC}"
     fi
 
-    echo -e "${GREEN}Checking status of ip6tables service...${NC}"
+    echo ""
 
     if systemctl is-active --quiet ip6tables.service; then
         echo -e "${GREEN}ip6tables service is running.${NC}"
