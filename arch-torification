@@ -1,116 +1,80 @@
 #!/bin/bash
 
-display_gui() {
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
 
-      cleanup() {
-    echo -e "\nGoodbye!"
-    exit 0
+c_check_tor() {
+    echo ""
+
+    # Check for tor
+    if command -v tor >/dev/null 2>&1; then
+        echo -e "${GREEN}tor is installed.${NC}"
+    else
+        echo -e "${RED}Tor Is Not Installed${NC}"
+        return 1
+    fi
+
+    return 0
 }
 
-trap cleanup SIGINT
+c_check_iptables() {
+    echo ""
 
-clear
-
-R='\033[0;31m'
-G='\033[0;32m'
-N='\033[0m'
-
-echo "Welcome!"
-echo "Following packages will be installed if not yet installed:"
-echo
-echo "1. Tor"
-echo "2. iptables"
-echo
-read -p "Press 'y' to continue or 'n' to exit: " a
-
-if [ "$a" == "y" ]; then
-    echo "Checking for dependencies..."
-    echo
-    mp=""
-
-    if ! command -v tor &> /dev/null; then
-        echo -e "${R}Tor is not installed.${N}"
-        mp+="tor "
+    # Check for iptables
+    if command -v iptables >/dev/null 2>&1; then
+        echo -e "${GREEN}iptables is installed.${NC}"
     else
-        echo -e "${G}Tor is installed.${N}"
+        echo -e "${RED}Iptables Is Not Installed${NC}"
+        return 1
     fi
 
-    if ! command -v iptables &> /dev/null; then
-        echo -e "${R}Iptables is not installed.${N}"
-        mp+="iptables "
-    else
-        echo -e "${G}Iptables is installed.${N}"
-    fi
-
-    if [ -n "$mp" ]; then
-        read -p "Do you want to install missing packages? (y/n): " ia
-        if [ "$ia" == "y" ]; then
-            echo "Installing missing packages..."
-            sudo pacman -S $mp
-        else
-            echo "Exiting without installing missing packages."
-            cleanup
-        fi
-    else
-        echo
-        echo "All dependencies are already installed."
-    fi
-elif [ "$a" == "n" ]; then
-    cleanup
-else
-    echo "Invalid input. Please enter 'y' or 'n'."
-    exit 1
-fi
-
-sleep 0.5
-clear
-
-display_menu() {
-    echo "Options:"
-    echo
-    echo -e "1. Setup ${G}(needs to be run only once for new installation)${N}"
-    echo "2. Start System-wide Tor"
-    echo "3. Stop System-wide Tor"
-    echo "4. Exit"
-    echo
+    return 0
 }
 
-restart_network_services() {
-    if systemctl status NetworkManager &> /dev/null; then
-        echo -e "${G}Restarting NetworkManager service...${N}"
-        sudo systemctl restart NetworkManager
-    elif systemctl status systemd-networkd &> /dev/null; then
-        echo -e "${G}Restarting systemd-networkd service...${N}"
-        sudo systemctl restart systemd-networkd
-    elif systemctl status connman &> /dev/null; then
-        echo -e "${G}Restarting ConnMan service...${N}"
-        sudo systemctl restart connman
-    elif systemctl status wicd &> /dev/null; then
-        echo -e "${G}Restarting Wicd service...${N}"
-        sudo systemctl restart wicd
-    elif systemctl status netctl &> /dev/null; then
-        echo -e "${G}Restarting netctl service...${N}"
-        sudo systemctl restart netctl
-    elif systemctl status iwd &> /dev/null; then
-        echo -e "${G}Restarting iwd service...${N}"
-        sudo systemctl restart iwd
+c_check_torrc() {
+    local file="/etc/tor/torrc"
+    local errors=0
+
+    echo "Checking /etc/tor/torrc for required settings..."
+
+    # Check if the torrc file exists
+    if [ ! -f "$file" ]; then
+        echo -e "${RED}Error: Torrc file not found.${NC}"
+        return 1
+    fi
+
+    if grep -q '^SOCKSPort 9050' "$file"; then
+        echo -e "${GREEN}SOCKSPort 9050 is correctly set.${NC}"
     else
-        echo "Cannot detect any known network service. Please restart your network manually."
+        errors=$((errors + 1))
+    fi
+
+    if grep -q '^DNSPort 5353' "$file"; then
+        echo -e "${GREEN}DNSPort 5353 is correctly set.${NC}"
+    else
+        errors=$((errors + 1))
+    fi
+
+    if grep -q '^TransPort 9040' "$file"; then
+        echo -e "${GREEN}TransPort 9040 is correctly set.${NC}"
+    else
+        errors=$((errors + 1))
+    fi
+
+    if [ $errors -eq 0 ]; then
+        echo -e "${GREEN}All required settings are correctly set in /etc/tor/torrc.${NC}"
+        return 0
+    else
+        return 1
     fi
 }
 
-
-setup_tor_iptables() {
-    if [ -d "/etc/iptables" ]; then
-        echo "Removing existing files in /etc/iptables directory..."
-        sudo rm -rf /etc/iptables/*
-    else
-        echo "Creating /etc/iptables directory..."
-        sudo mkdir -p /etc/iptables
-    fi
-
-    sudo tee /etc/iptables/iptables.rules /etc/iptables/ip6tables.rules > /dev/null <<EOF
-*nat
+c_check_iptables_config() {
+    local folder="/etc/iptables"
+    local file1="$folder/iptables.rules"
+    local file2="$folder/ip6tables.rules"
+    local expected_content="*nat
 :PREROUTING ACCEPT [6:2126]
 :INPUT ACCEPT [0:0]
 :OUTPUT ACCEPT [17:6239]
@@ -120,7 +84,7 @@ setup_tor_iptables() {
 -A PREROUTING ! -i lo -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j REDIRECT --to-ports 9040
 -A OUTPUT -o lo -j RETURN
 --ipv4 -A OUTPUT -d 192.168.0.0/16 -j RETURN
--A OUTPUT -m owner --uid-owner "tor" -j RETURN
+-A OUTPUT -m owner --uid-owner \"tor\" -j RETURN
 -A OUTPUT -p udp -m udp --dport 53 -j REDIRECT --to-ports 5353
 -A OUTPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j REDIRECT --to-ports 9040
 COMMIT
@@ -141,236 +105,211 @@ COMMIT
 --ipv4 -A OUTPUT -d 192.168.0.0/16 -j ACCEPT
 --ipv6 -A OUTPUT -d ::1/8 -j ACCEPT
 -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
--A OUTPUT -m owner --uid-owner "tor" -j ACCEPT
+-A OUTPUT -m owner --uid-owner \"tor\" -j ACCEPT
 --ipv4 -A OUTPUT -j REJECT --reject-with icmp-port-unreachable
 --ipv6 -A OUTPUT -j REJECT
-COMMIT
-EOF
+COMMIT"
 
-    sudo sed -i 's/:OUTPUT -d 127.0.0.0\/8 -j ACCEPT/:OUTPUT -d 127.0.0.0\/128 -j ACCEPT\n-A OUTPUT -d ::1\/128 -j ACCEPT\n-A OUTPUT -d fe80::\/10 -j ACCEPT/' /etc/iptables/ip6tables.rules
+    echo "Checking if iptables.rules and ip6tables.rules exist in $folder and have the expected content..."
 
-    echo "Files iptables.rules and ip6tables.rules have been created and modified in /etc/iptables directory."
-
-    sudo sed -i '/^\s*#.*SOCKSPort 9050/s/^#//' /etc/tor/torrc
-    sudo sed -i '/^\s*#.*DNSPort 5353/s/^#//' /etc/tor/torrc
-    sudo sed -i '/^\s*#.*TransPort 9040/s/^#//' /etc/tor/torrc
-
-    if ! grep -q "SOCKSPort 9050" /etc/tor/torrc; then
-        echo "" | sudo tee -a /etc/tor/torrc > /dev/null
-        echo "SOCKSPort 9050" | sudo tee -a /etc/tor/torrc > /dev/null
+    if [ ! -f "$file1" ]; then
+        echo "Error: $file1 does not exist."
+        return 1
     fi
 
-    if ! grep -q "DNSPort 5353" /etc/tor/torrc; then
-        echo "DNSPort 5353" | sudo tee -a /etc/tor/torrc > /dev/null
+    if [ ! -f "$file2" ]; then
+        echo "Error: $file2 does not exist."
+        return 1
     fi
 
-    if ! grep -q "TransPort 9040" /etc/tor/torrc; then
-        echo "TransPort 9040" | sudo tee -a /etc/tor/torrc > /dev/null
+    local content1
+    content1=$(<"$file1")
+
+    local content2
+    content2=$(<"$file2")
+
+    if [ "$content1" != "$expected_content" ]; then
+        echo -e "${RED}Some required settings are missing, RUN SETUP FIRST!${NC}"
+        return 1
     fi
 
-    echo "Configuration added to /etc/tor/torrc file."
-    echo -e "${G}Done and Dusted..${N}"
+    if [ "$content2" != "$expected_content" ]; then
+        echo -e "${RED}Some required settings are missing, RUN SETUP FIRST!${NC}"
+        return 1
+    fi
 
+    echo -e "${GREEN}Both $file1 and $file2 have the expected content.${NC}"
+    return 0
 }
 
-while true; do
-    display_menu
-    read -p "Enter your choice: " choice
-    echo # Line spacing
-
-    case $choice in
-        1)
-            setup_tor_iptables
-            echo # Line spacing
-            ;;
-        2)
-            printf "systemctl tor status: "
-            if ! systemctl is-active tor; then
-                echo -e "${R}Tor is not running.${N}"
-                echo -e "${G}Starting SystemTor...${N}"
-                sudo systemctl start tor && echo -e "${G}Started Tor service.${N}" || echo -e "${R}Failed to start Tor service.${N}"
-            fi
-            printf "systemctl iptables status: "
-            if ! systemctl is-active iptables; then
-                echo -e "${R}iptables service is not running.${N}"
-                echo -e "${G}Starting iptables service...${N}"
-                sudo systemctl start iptables && echo -e "${G}Started iptables service.${N}" || echo -e "${R}Failed to start iptables service.${N}"
-            fi
-            printf "systemctl ip6tables status:"
-            if ! systemctl is-active ip6tables; then
-                echo -e "${R}ip6tables service is not running.${N}"
-                echo -e "${G}Starting ip6tables service...${N}"
-                sudo systemctl start ip6tables && echo -e "${G}Started ip6tables service.${N}" || echo -e "${R}Failed to start ip6tables service.${N}"
-            fi
-            restart_network_services
-            echo # Line spacing
-            ;;
-        3)
-            echo -e "${G}Stopping SystemTor...${N}"
-            sudo systemctl stop tor
-            echo -e "${G}Stopping iptables service...${N}"
-            sudo systemctl stop iptables
-            echo -e "${G}Stopping ip6tables service...${N}"
-            sudo systemctl stop ip6tables
-            restart_network_services
-            echo # Line spacing
-            ;;
-        4)
-            cleanup
-            echo # Line spacing
-            ;;
-        *)
-            echo "Invalid choice. Please enter a number between 1 and 4."
-            echo # Line spacing
-            ;;
-    esac
-
-done
-      
-}
-
-G="\e[32m" # Green color
-R="\e[31m" # Red color
-N="\e[0m"  # Reset color
-
-start_tor() {
-    if ! command -v tor &> /dev/null; then
-        echo -e "${R}Tor is not installed.${N}"
-        echo "Maybe you forgot to run arch-torification --setup."
-        exit 1
-    fi
-
-    if ! command -v iptables &> /dev/null; then
-        echo -e "${R}iptables is not installed.${N}"
-        echo "Maybe you forgot to run arch-torification --setup."
-        exit 1
-    fi
-
-    printf "systemctl tor status: "
-    if ! systemctl is-active tor; then
-        echo -e "${R}Tor is not running.${N}"
-        echo -e "${G}Starting SystemTor...${N}"
-        sudo systemctl start tor && echo -e "${G}Started Tor service.${N}" || echo -e "${R}Failed to start Tor service.${N}"
-    fi
-
-    printf "systemctl iptables status: "
-    if ! systemctl is-active iptables; then
-        echo -e "${R}iptables service is not running.${N}"
-        echo -e "${G}Starting iptables service...${N}"
-        sudo systemctl start iptables && echo -e "${G}Started iptables service.${N}" || echo -e "${R}Failed to start iptables service.${N}"
-    fi
-
-    printf "systemctl ip6tables status:"
-    if ! systemctl is-active ip6tables; then
-        echo -e "${R}ip6tables service is not running.${N}"
-        echo -e "${G}Starting ip6tables service...${N}"
-        sudo systemctl start ip6tables && echo -e "${G}Started ip6tables service.${N}" || echo -e "${R}Failed to start ip6tables service.${N}"
-    fi
-
-    restart_network_services
-    echo # Line spacing
-}
-
-stop_tor() {
-
-    if ! command -v tor &> /dev/null || ! command -v iptables &> /dev/null; then
-        echo -e "${R}Tor or iptables is not installed.${N}"
-        echo "Maybe you forgot to run arch-torification --setup."
-        exit 1
-    fi
-
-    if ! systemctl is-active tor &> /dev/null; then
-        echo -e "${R}Tor is not running.${N}"
-        exit 1
-    fi
-
-    if ! systemctl is-active iptables &> /dev/null; then
-        echo -e "${R}iptables service is not running.${N}"
-        exit 1
-    fi
-
-    if ! systemctl is-active ip6tables &> /dev/null; then
-        echo -e "${R}ip6tables service is not running.${N}"
-        exit 1
-    fi
-
-    echo -e "${G}Stopping SystemTor${N}"
-    sudo systemctl stop tor
-    echo -e "${G}Stopping iptables service...${N}"
-    sudo systemctl stop iptables
-    echo -e "${G}Stopping ip6tables service...${N}"
-    sudo systemctl stop ip6tables
-    restart_network_services
-    echo 
-}
-
-check_status() {
+display_help() {
+    echo "Usage: $0 [option]"
+    echo ""
+    echo "Options:"
+    echo ""
+    echo "  --setup       Required To Do only Once"
+    echo "  --start-tor   Start Tor and related services"
+    echo "  --stop-tor    Stop Tor and related services"
+    echo "  --status      Check status of Tor and related services"
+    echo "  --help        Display this help message"
     echo
-    echo -e "${G}Checking status of Tor and related services...${N}"
-    echo
-    tor_status=$(sudo systemctl is-active tor)
-    iptables_status=$(sudo systemctl is-active iptables)
-    ip6tables_status=$(sudo systemctl is-active ip6tables)
+}
 
-    if [[ $tor_status == "active" && $iptables_status == "active" && $ip6tables_status == "active" ]]; then
-        echo -e "${G}Torification is Enabled System Wide${N}"
+c_start_services() {
+    echo -e "${GREEN}Starting Tor services...${NC}"
+    sudo systemctl start tor.service
+
+    echo -e "${GREEN}Starting iptables service...${NC}"
+    sudo systemctl start iptables.service
+
+    echo -e "${GREEN}Starting ip6tables service...${NC}"
+    sudo systemctl start ip6tables.service
+
+    echo -e "${GREEN}Services started successfully.${NC}"
+}
+
+c_stop_services() {
+    echo -e "${GREEN}Stopping Tor service...${NC}"
+    sudo systemctl stop tor.service
+
+    echo -e "${GREEN}Stopping iptables service...${NC}"
+    sudo systemctl stop iptables.service
+
+    echo -e "${GREEN}Stopping ip6tables service...${NC}"
+    sudo systemctl stop ip6tables.service
+
+    echo -e "${GREEN}Services stopped successfully.${NC}"
+}
+
+c_status_services() {
+    echo -e "${GREEN}Checking status of Tor service...${NC}"
+    if systemctl is-active --quiet tor.service; then
+        echo -e "${GREEN}Tor service is running.${NC}"
     else
-        echo -e "${R}Torification is Disabled System Wide${N}"
+        echo -e "${RED}Tor service is not running.${NC}"
     fi
-    echo
-}
 
-restart_network_services() {
-    if systemctl status NetworkManager &> /dev/null; then
-        echo -e "${G}Restarting NetworkManager service...${N}"
-        sudo systemctl restart NetworkManager
-    elif systemctl status systemd-networkd &> /dev/null; then
-        echo -e "${G}Restarting systemd-networkd service...${N}"
-        sudo systemctl restart systemd-networkd
-    elif systemctl status connman &> /dev/null; then
-        echo -e "${G}Restarting ConnMan service...${N}"
-        sudo systemctl restart connman
-    elif systemctl status wicd &> /dev/null; then
-        echo -e "${G}Restarting Wicd service...${N}"
-        sudo systemctl restart wicd
-    elif systemctl status netctl &> /dev/null; then
-        echo -e "${G}Restarting netctl service...${N}"
-        sudo systemctl restart netctl
-    elif systemctl status iwd &> /dev/null; then
-        echo -e "${G}Restarting iwd service...${N}"
-        sudo systemctl restart iwd
+    echo -e "${GREEN}Checking status of iptables service...${NC}"
+
+    if systemctl is-active --quiet iptables.service; then
+        echo -e "${GREEN}iptables service is running.${NC}"
     else
-        echo "Cannot detect any known network service. Please restart your network manually."
+        echo -e "${RED}iptables service is not running.${NC}"
+    fi
+
+    echo -e "${GREEN}Checking status of ip6tables service...${NC}"
+
+    if systemctl is-active --quiet ip6tables.service; then
+        echo -e "${GREEN}ip6tables service is running.${NC}"
+    else
+        echo -e "${RED}ip6tables service is not running.${NC}"
     fi
 }
 
-setup() {
+c_network_restart() {
+    echo "Restarting network service..."
 
-    if ! command -v tor &> /dev/null; then
-        echo -e "${R}Tor is not installed.${N}"
-        echo "Installing Tor..."
-        sudo pacman -S tor 
-        echo "Tor installed successfully."
+    if systemctl is-active --quiet NetworkManager; then
+        echo "NetworkManager is active. Restarting NetworkManager..."
+        if systemctl restart NetworkManager; then
+            echo "NetworkManager restarted successfully."
+        else
+            echo "Failed to restart NetworkManager."
+            return 1
+        fi
+    elif systemctl is-active --quiet systemd-networkd; then
+        echo "systemd-networkd is active. Restarting systemd-networkd..."
+        if systemctl restart systemd-networkd; then
+            echo "systemd-networkd restarted successfully."
+        else
+            echo "Failed to restart systemd-networkd."
+            return 1
+        fi
+    elif systemctl is-active --quiet netctl; then
+        echo "netctl is active. Restarting netctl..."
+        if systemctl restart netctl; then
+            echo "netctl restarted successfully."
+        else
+            echo "Failed to restart netctl."
+            return 1
+        fi
+    elif systemctl is-active --quiet iwd; then
+        echo "iwd is active. Restarting iwd..."
+        if systemctl restart iwd; then
+            echo "iwd restarted successfully."
+        else
+            echo "Failed to restart iwd."
+            return 1
+        fi
+    elif systemctl is-active --quiet connman; then
+        echo "connman is active. Restarting connman..."
+        if systemctl restart connman; then
+            echo "connman restarted successfully."
+        else
+            echo "Failed to restart connman."
+            return 1
+        fi
+    elif systemctl is-active --quiet iwcd; then
+        echo "iwcd is active. Restarting iwcd..."
+        if systemctl restart iwcd; then
+            echo "iwcd restarted successfully."
+        else
+            echo "Failed to restart iwcd."
+            return 1
+        fi
+    else
+        echo "No supported network service is active."
+        return 1
     fi
 
-    if ! command -v iptables &> /dev/null; then
-        echo -e "${R}iptables is not installed.${N}"
+    return 0
+}
+
+c_setup() {
+    if ! c_check_tor; then
+        echo "Installing tor..."
+        sudo pacman -S tor || {
+            echo "Failed to install tor. Please try again."
+            exit 1
+        }
+    fi
+
+    if ! c_check_iptables; then
         echo "Installing iptables..."
-        sudo pacman -S iptables
-        echo "iptables installed successfully."
+        sudo pacman -S iptables || {
+            echo "Failed to install iptables. Please try again."
+            exit 1
+        }
+    fi
+    
+    if ! c_check_torrc; then
+        echo -e "${RED}Error: /etc/tor/torrc not found.${NC}"
+        echo "Reinstalling Tor..."
+        sudo pacman -S tor
+
+        if command -v tor >/dev/null 2>&1; then
+            echo "Tor reinstalled successfully. Updating permissions of /etc/tor/torrc..."
+            sudo chmod 644 /etc/tor/torrc
+            echo "Permissions updated for /etc/tor/torrc."
+        else
+            echo -e "${RED}Error: Tor reinstallation failed.${NC}"
+            exit 1
+        fi
+    fi
+
+    echo -e "${GREEN}Setting up Tor System Wide...${NC}"
+    
+    if [ -d "/etc/iptables.old" ]; then
+        echo -e "${GREEN}Removing existing /etc/iptables.old folder...${NC}"
+        sudo rm -rf /etc/iptables.old
     fi
 
     if [ -d "/etc/iptables" ]; then
-        echo "Backing up existing files in /etc/iptables directory into /etc/iptables.old..."
-        if [ -n "$(ls -A /etc/iptables/)" ]; then 
-            sudo mv /etc/iptables /etc/iptables.old
-        else
-            echo "Directory /etc/iptables is empty."
-        fi
-    else
-        echo "Creating /etc/iptables directory..."
-        sudo mkdir -p /etc/iptables
+        echo -e "${GREEN}Backing up existing /etc/iptables folder...${NC}"
+        sudo mv /etc/iptables /etc/iptables.old
     fi
+
+    sudo mkdir -p /etc/iptables
     
     sudo touch /etc/iptables/iptables.rules
     sudo touch /etc/iptables/ip6tables.rules
@@ -414,7 +353,7 @@ EOF
 
     sudo sed -i 's/:OUTPUT -d 127.0.0.0\/8 -j ACCEPT/:OUTPUT -d 127.0.0.0\/128 -j ACCEPT\n-A OUTPUT -d ::1\/128 -j ACCEPT\n-A OUTPUT -d fe80::\/10 -j ACCEPT/' /etc/iptables/ip6tables.rules
 
-    echo "Files iptables.rules and ip6tables.rules have been created and modified in /etc/iptables directory."
+    echo -e "${GREEN}Files iptables.rules and ip6tables.rules have been created and modified in /etc/iptables directory.${NC}"
 
     sudo sed -i '/^\s*#.*SOCKSPort 9050/s/^#//' /etc/tor/torrc
     sudo sed -i '/^\s*#.*DNSPort 5353/s/^#//' /etc/tor/torrc
@@ -433,26 +372,141 @@ EOF
         echo "TransPort 9040" | sudo tee -a /etc/tor/torrc > /dev/null
     fi
 
-    echo "Configuration added to /etc/tor/torrc file."
-    echo -e "${G}Done and Dusted..${N}"   
+    echo -e "${GREEN}Configuration added to /etc/tor/torrc file.${NC}"
+    echo -e "${GREEN}Done and Dusted..${NC}"   
+    echo ""
+}
 
+exit_gracefully() {
+    echo -e "${GREEN}Exiting...${NC}"
+    exit 0
+}
+
+gui() {
+    clear
+
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    NC='\033[0m' # No Color
+    
+
+    trap exit_gracefully SIGINT
+
+    echo ""
+    echo -e "${GREEN}Welcome!${NC}"
+    echo "Following packages will be installed if not yet installed:"
+    echo
+    echo "1. Tor"
+    echo "2. iptables"
+    echo
+    read -rp "Press 'y' to continue or 'n' to exit: " a
+
+    if [ "$a" != "y" ]; then
+        exit_gracefully
+    fi
+
+    if ! c_check_tor; then
+        echo "Installing tor..."
+        sudo pacman -S tor || {
+            echo "Failed to install tor. Please try again."
+            exit 1
+        }
+    fi
+
+    if ! c_check_iptables; then
+        echo "Installing iptables..."
+        sudo pacman -S iptables || {
+            echo "Failed to install iptables. Please try again."
+            exit 1
+        }
+    fi
+
+    sleep 0.6
+    clear
+
+    while true; do
+        echo -e "${GREEN}Welcome!${NC}"
+
+        echo
+        echo "Options:"
+        echo "1. Setup [DO IT, If you haven't already!]"
+        echo "2. Start Tor System Wide"
+        echo "3. Stop Tor System Wide"
+        echo "4. Status"
+        echo "5. Exit"
+
+        read -rp "Enter your choice: " choice
+
+        case $choice in
+            1)
+                c_setup
+                sleep 0.6
+                clear
+                ;;
+            2)
+                echo -e "${GREEN}Checking Tor configuration...${NC}"
+                if c_check_tor && c_check_iptables && c_check_torrc && c_check_iptables_config; then
+                    echo -e "${GREEN}All checks passed. Starting Tor services...${NC}"
+                    c_start_services
+                else
+                    echo -e "${RED}Error: Tor configuration check failed. Cannot start Tor services.${NC}"
+                fi
+                sleep 0.6
+                clear
+                ;;
+            3)
+                echo -e "${GREEN}Checking Tor configuration...${NC}"
+                if c_check_tor && c_check_iptables && c_check_torrc && c_check_iptables_config; then
+                    echo -e "${GREEN}All checks passed. Stopping Tor services...${NC}"
+                    c_stop_services
+                else
+                    echo -e "${RED}Error: Tor configuration check failed. Cannot stop Tor services.${NC}"
+                fi
+                sleep 0.6
+                clear
+                ;;
+            4)
+                c_status_services
+                sleep 1
+                clear
+                ;;
+            5)
+                exit_gracefully
+                ;;
+            *)
+                echo "Invalid choice. Please select a valid option."
+                ;;
+        esac
+    done
 }
 
 handle_options() {
     case "$1" in
         "--setup")
-            setup
+            c_setup
             ;;
         "--start-tor")
-            start_tor
+            echo -e "${GREEN}Checking Tor configuration...${NC}"
+            if c_check_tor && c_check_iptables && c_check_torrc && c_check_iptables_config; then
+                echo -e "${GREEN}All checks passed. Starting Tor services...${NC}"
+                c_start_services
+            else
+                echo -e "${RED}Some required settings are missing, RUN SETUP FIRST!${NC}"
+            fi
             ;;
         "--stop-tor")
-            stop_tor
+            echo -e "${GREEN}Checking Tor configuration...${NC}"
+            if c_check_tor && c_check_iptables && c_check_torrc && c_check_iptables_config; then
+                echo -e "${GREEN}All checks passed. Stopping Tor services...${NC}"
+                c_stop_services
+            else
+                echo -e "${RED}Some required settings are missing, RUN SETUP FIRST!${NC}"
+            fi
             ;;
         "--status")
-            check_status
+            c_status_services
             ;;
-        "--help")
+        "--help" | "-h" | "-" | "--")
             display_help
             ;;
         *)
@@ -462,19 +516,8 @@ handle_options() {
     esac
 }
 
-display_help() {
-    echo "Usage: $0 [option]"
-    echo "Options:"
-    echo "  --setup       Required To Do only Once"
-    echo "  --start-tor   Start Tor and related services"
-    echo "  --stop-tor    Stop Tor and related services"
-    echo "  --status      Check status of Tor and related services"
-    echo "  --help        Display this help message"
-    echo
-}
-
 if [ "$#" -eq 0 ]; then
-    display_gui
+    gui
 else
     handle_options "$1"
 fi
