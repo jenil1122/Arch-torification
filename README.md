@@ -29,7 +29,7 @@ CLI
 
 3. ```cd Arch-torification```
 
-4. ``` chmod +x arch-torification.sh ```
+4. ``` chmod +x arch-torification ```
 
 5. ``` bash arch-torification ```
 
