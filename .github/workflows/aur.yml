@@ -1,11 +1,16 @@
-name: Publish to AUR
+name: Build with Arch Linux Docker
 
 on:
   push:
     branches:
-      - master  
+      - master
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux/base-devel:latest
+
   aur:
     runs-on: ubuntu-latest
     container:
