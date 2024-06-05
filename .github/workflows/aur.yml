@@ -25,12 +25,14 @@ jobs:
           fi
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/arch-torification
+          mkdir -p test
+          cd test
           git clone ssh://aur@aur.archlinux.org/arch-torification.git
 
       - name: Copy PKGBUILD and generate .SRCINFO
         run: |
-          cp PKGBUILD arch-torification/
-          cd arch-torification
+          cp PKGBUILD test/arch-torification/
+          cd test/arch-torification
           makepkg --printsrcinfo > .SRCINFO
 
       - name: Commit and push changes to AUR
@@ -38,3 +40,6 @@ jobs:
           git add PKGBUILD .SRCINFO
           git commit -m "Update PKGBUILD for version ${{ github.event.release.tag_name }}"
           git push
+
+      - name: Clean up
+        run: rm -rf test
