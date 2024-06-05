@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-
 jobs:
   aur:
     runs-on: ubuntu-latest
@@ -17,17 +16,14 @@ jobs:
 
       - name: Configure SSH and clone AUR repository
         run: |
-          if [ ! -d ~/.ssh ]; then
-            mkdir -p ~/.ssh
-          fi
-          if [ ! -f ~/.ssh/arch-torification ]; then
-            ssh-keygen -t rsa -b 4096 -f ~/.ssh/arch-torification -P ""
-          fi
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/arch-torification
+          chmod 600 ~/.ssh/arch-torification
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/arch-torification
-          cat ~/.ssh/arch-torification.pub
           mkdir -p test
           cd test
+          ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
           git clone ssh://aur@aur.archlinux.org/arch-torification.git
 
       - name: Copy PKGBUILD and generate .SRCINFO
@@ -38,6 +34,7 @@ jobs:
 
       - name: Commit and push changes to AUR
         run: |
+          cd test/arch-torification
           git add PKGBUILD .SRCINFO
           git commit -m "Update PKGBUILD for version ${{ github.event.release.tag_name }}"
           git push
