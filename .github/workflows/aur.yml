@@ -1,0 +1,32 @@
+name: Publish to AUR
+
+on:
+  push:
+    paths:
+      - '**/PKGBUILD'
+    tags:
+      - 'v*'  # This will trigger the action for any tag that starts with 'v'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies and update AUR
+        run: |
+          sudo apt install -y git build-essential
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+          git clone ssh://aur@aur.archlinux.org/napture.git aur
+          cd aur
+          cp ../PKGBUILD .
+          makepkg --printsrcinfo > .SRCINFO
+          git add PKGBUILD .SRCINFO
+          git commit -m "Update PKGBUILD for version ${{ github.event.release.tag_name }}"
+          git push
