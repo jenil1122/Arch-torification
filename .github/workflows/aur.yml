@@ -17,7 +17,9 @@ jobs:
 
       - name: Configure SSH and clone AUR repository
         run: |
-          mkdir -p ~/.ssh
+          if [ ! -d ~/.ssh ]; then
+            mkdir -p ~/.ssh
+          fi
           if [ ! -f ~/.ssh/arch-torification ]; then
             ssh-keygen -t rsa -b 4096 -f ~/.ssh/arch-torification -P ""
           fi
