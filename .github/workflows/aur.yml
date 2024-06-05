@@ -18,10 +18,11 @@ jobs:
       - name: Configure SSH and clone AUR repository
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          if [ ! -f ~/.ssh/arch-torification ]; then
+            ssh-keygen -t rsa -b 4096 -f ~/.ssh/arch-torification -P ""
+          fi
           eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_rsa
+          ssh-add ~/.ssh/arch-torification
           git clone ssh://aur@aur.archlinux.org/arch-torification.git
 
       - name: Copy PKGBUILD and generate .SRCINFO
