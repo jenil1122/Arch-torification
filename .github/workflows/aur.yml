@@ -25,6 +25,7 @@ jobs:
           fi
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/arch-torification
+          cat ~/.ssh/arch-torification.pub
           mkdir -p test
           cd test
           git clone ssh://aur@aur.archlinux.org/arch-torification.git
