@@ -17,6 +17,7 @@ jobs:
       - name: Configure SSH and clone AUR repository
         run: |
           mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}"
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/arch-torification
           chmod 600 ~/.ssh/arch-torification
           eval "$(ssh-agent -s)"
