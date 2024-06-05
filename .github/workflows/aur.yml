@@ -2,10 +2,8 @@ name: Publish to AUR
 
 on:
   push:
-    paths:
-      - '**/PKGBUILD'
-    tags:
-      - 'v*'  # This will trigger the action for any tag that starts with 'v'
+    branches:
+      - master
 
 jobs:
   build:
