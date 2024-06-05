@@ -2,8 +2,8 @@ name: Publish to AUR
 
 on:
   push:
-    tags:
-      - 'v*'  # This will trigger the action for any tag that starts with 'v'
+    branches:
+      - master
 
 jobs:
   aur:
