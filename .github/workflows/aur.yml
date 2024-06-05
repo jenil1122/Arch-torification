@@ -6,8 +6,6 @@ on:
       - '**/PKGBUILD'
     tags:
       - 'v*'  # This will trigger the action for any tag that starts with 'v'
-
-
 jobs:
   aur:
     runs-on: ubuntu-latest
