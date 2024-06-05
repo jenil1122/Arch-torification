@@ -3,11 +3,7 @@ name: Publish to AUR
 on:
   push:
     branches:
-      - master
-    paths:
-      - '**/PKGBUILD'
-    tags:
-      - 'v*'  # This will trigger the action for any tag that starts with 'v'
+      - master  
 
 jobs:
   aur:
@@ -22,6 +18,7 @@ jobs:
       - name: Install dependencies and update AUR
         run: |
           pacman -Sy --noconfirm git base-devel
+          cat /etc/os-release
           mkdir -p ~/.ssh
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
