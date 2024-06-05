@@ -3,7 +3,7 @@ name: Publish to AUR
 on:
   push:
     branches:
-      - master  # This will trigger the action for any commit to the master branch
+      - master  # Trigger on any commit to the master branch
 
 jobs:
   aur:
@@ -15,22 +15,18 @@ jobs:
       - name: Install dependencies
         run: sudo apt install -y git build-essential
 
-      - name: Print environment variables (debug)
-        run: printenv
-
-      - name: Print the AUR_SSH_PRIVATE_KEY (debug)
-        run: echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}"
-
       - name: Configure SSH and clone AUR repository
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/arch-torification
-          chmod 600 ~/.ssh/arch-torification
+          if [ ! -f ~/.ssh/arch-torification ]; then
+            echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/arch-torification
+            chmod 600 ~/.ssh/arch-torification
+          fi
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/arch-torification
+          cat ~/.ssh/arch-torification
           mkdir -p test
           cd test
-          ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
           git clone ssh://aur@aur.archlinux.org/arch-torification.git
 
       - name: Copy PKGBUILD and generate .SRCINFO
