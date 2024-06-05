@@ -22,12 +22,12 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_rsa
-          git clone ssh://aur@aur.archlinux.org/napture.git napture
+          git clone ssh://aur@aur.archlinux.org/arch-torification.git
 
       - name: Copy PKGBUILD and generate .SRCINFO
         run: |
-          cp PKGBUILD napture/
-          cd napture
+          cp PKGBUILD arch-torification/
+          cd arch-torification
           makepkg --printsrcinfo > .SRCINFO
 
       - name: Commit and push changes to AUR
