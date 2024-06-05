@@ -1,4 +1,4 @@
-# Maintainer: Jenil
+# Maintainer: Jenil.
 pkgname=arch-torification
 pkgver=1.2
 pkgrel=1
