@@ -11,11 +11,7 @@ jobs:
     container:
       image: archlinux/base-devel:latest
 
-  aur:
-    runs-on: ubuntu-latest
-    container:
-      image: archlinux/base:latest
-      options: --privileged
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
