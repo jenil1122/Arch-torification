@@ -3,47 +3,35 @@ name: Publish to AUR
 on:
   push:
     branches:
-      - master  # Trigger on any commit to the master branch
-
-env:
-  AUR_SSH_PRIVATE_KEY: ${{ secrets.MY_SECRET }}
+      - master
+    paths:
+      - '**/PKGBUILD'
+    tags:
+      - 'v*'  # This will trigger the action for any tag that starts with 'v'
 
 jobs:
   aur:
     runs-on: ubuntu-latest
+    container:
+      image: archlinux/base:latest
+      options: --privileged
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: sudo apt install -y git build-essential
-
-      - name: Configure SSH and clone AUR repository
+      - name: Install dependencies and update AUR
         run: |
+          pacman -Sy --noconfirm git base-devel
           mkdir -p ~/.ssh
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          echo "${{ secrets.AUR_SSH_PUBLIC_KEY }}" > ~/.ssh/id_rsa.pub
           chmod 600 ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa.pub
           ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_rsa
-          mkdir -p test
-          cd test
-          git clone ssh://aur@aur.archlinux.org/arch-torification.git
-
-      - name: Copy PKGBUILD and generate .SRCINFO
-        run: |
-          cp PKGBUILD test/arch-torification/
-          cd test/arch-torification
+          git clone ssh://aur@aur.archlinux.org/napture.git aur
+          cd aur
+          cp ../PKGBUILD .
           makepkg --printsrcinfo > .SRCINFO
-
-      - name: Commit and push changes to AUR
-        run: |
-          cd test/arch-torification
           git add PKGBUILD .SRCINFO
           git commit -m "Update PKGBUILD for version ${{ github.event.release.tag_name }}"
           git push
-
-      - name: Clean up
-        run: rm -rf test
