@@ -2,28 +2,36 @@ name: Publish to AUR
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - 'v*'  # This will trigger the action for any tag that starts with 'v'
 
 jobs:
-  build:
+  aur:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install dependencies and update AUR
+      - name: Install dependencies
+        run: sudo apt install -y git build-essential
+
+      - name: Configure SSH and clone AUR repository
         run: |
-          sudo apt install -y git build-essential
           mkdir -p ~/.ssh
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_rsa
-          git clone ssh://aur@aur.archlinux.org/arch-torification.git
-          cd Arch-torification
-          cp ../PKGBUILD 
+          git clone ssh://aur@aur.archlinux.org/napture.git napture
+
+      - name: Copy PKGBUILD and generate .SRCINFO
+        run: |
+          cp PKGBUILD napture/
+          cd napture
           makepkg --printsrcinfo > .SRCINFO
+
+      - name: Commit and push changes to AUR
+        run: |
           git add PKGBUILD .SRCINFO
           git commit -m "Update PKGBUILD for version ${{ github.event.release.tag_name }}"
           git push
