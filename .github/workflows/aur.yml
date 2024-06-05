@@ -17,6 +17,7 @@ jobs:
           sudo apt install -y git build-essential
           mkdir -p ~/.ssh
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_rsa
           git clone ssh://aur@aur.archlinux.org/arch-torification.git
