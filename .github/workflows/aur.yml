@@ -19,7 +19,7 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           if [ ! -f ~/.ssh/arch-torification ]; then
-            echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/arch-torification
+            echo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCpXc4NJRhwmHwFG9k8QWcN1vFFtcwskI+RoNBkN8IwB3EidmaAOTMv7sz6CeXCW+ALn0kXHwauX6t4Hns8j3FIh0QZh8itdQkiV0KQcfb+sRnCk6WMGH1eI1VJNnEHgU2KmE9OrE8eENeOqKOLY5Qb3c/YbROdylcTFfHx/X5+3Xmi4Xcsy+v3xwox743RgxziDH8ALGS8jV6P7LI1W+IhmtuU2IEYaN5w3Qsh3viASBdx2vHkCDxvGUWq9V65u2P560Hw6LbCfzJlhLZ9O3xb266jKIPJthMDcxVDx+5q4/XSv8HRbfDIiH5XSMvrYUTqwhaoEiX0pdq5bbj6lWHhlH6owyKf2/v1Q4kLeUS3HtuiORieuZStWBJEyszc6Yg6RznUs7UGgrmNur6lwy/BnfE04bkjsfOVFdL1Hg/5cM7mLFY+kl2o7c79fGatpXXU6cogFzu5VY6DibwDzvo+D+v3NzXRDePVWyBGYQpVKiiMjxXPWO/2MH8ft483Q5PFMP361aTx3MAjmSPesuso3m6NN8TaN2Xvu2xF67RBkU1xka9At/nXR2WJvfI/NLlHIUvHIYipx1MTmk3/oSNjvpckRwhF8Q7LF9sWKMmeq+4qWAhbcllzKqwyrrTfc5Zj/YkMjgRhbsY4I9NY+Lb4CRvu2hBE69TFZoJe/x8COw== > ~/.ssh/arch-torification
             chmod 600 ~/.ssh/arch-torification
           fi
           eval "$(ssh-agent -s)"
