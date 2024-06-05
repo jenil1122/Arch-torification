@@ -23,8 +23,8 @@ jobs:
             chmod 600 ~/.ssh/arch-torification
           fi
           eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/arch-torification
           cat ~/.ssh/arch-torification
+          ssh-add ~/.ssh/arch-torification
           mkdir -p test
           cd test
           git clone ssh://aur@aur.archlinux.org/arch-torification.git
