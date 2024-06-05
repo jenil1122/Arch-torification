@@ -21,14 +21,13 @@ jobs:
       - name: Configure SSH and clone AUR repository
         run: |
           mkdir -p ~/.ssh
-          if [ ! -f ~/.ssh/arch-torification ]; then
-              echo "${{ env.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/arch-torification
-              chmod 600 ~/.ssh/arch-torification
-          fi
-
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.AUR_SSH_PUBLIC_KEY }}" > ~/.ssh/id_rsa.pub
+          chmod 600 ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa.pub
+          ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
           eval "$(ssh-agent -s)"
-          cat ~/.ssh/arch-torification
-          ssh-add ~/.ssh/arch-torification
+          ssh-add ~/.ssh/id_rsa
           mkdir -p test
           cd test
           git clone ssh://aur@aur.archlinux.org/arch-torification.git
