@@ -26,5 +26,6 @@ jobs:
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."
             fi &&
             eval "$(ssh-agent)" &&
-            ssh-add <(echo "$AUR_SSH_PUBLIC_KEY")
+            echo "$AUR_SSH_PUBLIC_KEY" | ssh-add -
+            git clone ssh://aur@aur.archlinux.org/arch-torification.git
           '
