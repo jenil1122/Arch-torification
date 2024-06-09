@@ -8,9 +8,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    steps:
+    - name: Update Pkgbuild
+
         run: |
-          docker pull archlinux:latest
-          docker run --rm archlinux:latest sh -c '
+          docker pull archlinux
+          docker run -it archlinux '
             pacman --noconfirm -Syu &&
             pacman --noconfirm -S base-devel git sudo
           '
