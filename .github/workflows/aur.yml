@@ -8,11 +8,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Docker
-        uses: docker/setup-docker@v2
-
       - name: Pull Arch Linux image
-        run: docker pull archlinux:latest
+        run: docker pull archlinux
 
       - name: Run commands inside Arch Linux container
         run: |
