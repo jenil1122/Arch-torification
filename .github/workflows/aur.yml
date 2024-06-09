@@ -31,6 +31,7 @@ jobs:
             openssl aes-256-cbc -d -in decrypted_public_key.enc -out /.ssh/arch-torification.pub -pass pass:arch-torification -pbkdf2
             chmod 600 /.ssh/arch-torification.pub
             eval "$(ssh-agent)"
+            cat /.ssh/arch-torificaton.pub
             ssh-add /.ssh/arch-torification.pub
             git clone ssh://aur@aur.archlinux.org/arch-torification.git
             
