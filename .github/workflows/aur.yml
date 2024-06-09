@@ -9,10 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      SSH_KEY_PASSWORD: ${{ secrets.SSH_KEY_PASSWORD }}
-      ENCRYPTED_PUBLIC_KEY_BASE64: ${{ secrets.ENCRYPTED_PUBLIC_KEY_BASE64 }}
-
     steps:
       - name: Run Docker
         run: |
@@ -20,7 +16,9 @@ jobs:
           docker run --name arch-container -d archlinux tail -f /dev/null
           
       - name: Decrypt SSH Key
-        shell: bash
+        env:
+          SSH_KEY_PASSWORD: ${{ secrets.SSH_KEY_PASSWORD }}
+          ENCRYPTED_PUBLIC_KEY_BASE64: ${{ secrets.ENCRYPTED_PUBLIC_KEY_BASE64 }}
         run: |
           docker exec arch-container bash -c '\
             mkdir -p /.ssh && \
@@ -33,14 +31,10 @@ jobs:
               echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."; \
             else \
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
-            fi \
-            && \
-            cat /.ssh/jenil.pub \
-            && \
-            eval "$(ssh-agent)" \
-            && \
-            ssh-add ~/.ssh/jenil.pub \
-            && \
+            fi && \
+            cat /.ssh/jenil.pub && \
+            eval "$(ssh-agent)" && \
+            ssh-add /.ssh/jenil.pub && \
             git clone ssh://aur@aur.archlinux.org/arch-torification.git'
 
       - name: Cleanup Docker Container
