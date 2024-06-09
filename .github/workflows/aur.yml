@@ -13,27 +13,28 @@ jobs:
       SSH_KEY_PASSWORD: ${{ secrets.SSH_KEY_PASSWORD }} # Optional if you used a password to encrypt the key
 
     steps:
-      - name: Run Docker container
-        run: |
-          docker pull archlinux
-          docker run --name arch-container -v $PWD:/workspace archlinux /bin/bash -c "tail -f /dev/null"
+  name: Pull Docker image
+  run: docker pull archlinux
 
-      - name: Update Pkgbuild
-        run: |
-          docker exec -it arch-container sh -c '
-            pacman --noconfirm -Syu &&
-            pacman --noconfirm -S base-devel git sudo wget openssh &&
-            useradd -m -G wheel arch-torification &&
-            sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers &&
-            echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file." &&
-            mkdir -p /home/arch-torification/.ssh &&
-            echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode > /home/arch-torification/.ssh/decrypted_public_key.enc &&
-            openssl aes-256-cbc -d -in /home/arch-torification/.ssh/decrypted_public_key.enc -out /home/arch-torification/.ssh/arch-torification.pub -pass pass:arch-torification -pbkdf2 &&
-            chmod 600 /home/arch-torification/.ssh/arch-torification.pub &&
-            chown -R arch-torification:wheel /home/arch-torification/.ssh &&
-            eval "$(ssh-agent)" &&
-            su - arch-torification -c "ssh-add ~/.ssh/arch-torification.pub && git clone ssh://aur@aur.archlinux.org/arch-torification.git"
-          '
+  name: Run Docker container
+  run: docker run -d --name arch-container archlinux 
 
-      - name: Cleanup
-        run: docker rm -f arch-container
+ name: Execute commands inside Docker container
+  run: |
+    docker exec arch-container sh -c '
+      pacman --noconfirm -Syu &&
+      pacman --noconfirm -S base-devel git sudo wget openssh &&
+      useradd -m -G wheel arch-torification &&
+      if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then
+        sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers &&
+        echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."
+      else
+        echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."
+      fi &&
+      mkdir -p /home/arch-torification/.ssh &&
+      echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode | openssl aes-256-cbc -d -out /home/arch-torification/.ssh/id_rsa.pub -pass pass:arch-torification -pbkdf2 &&
+      chmod 600 /home/arch-torification/.ssh/id_rsa.pub &&
+      eval "$(ssh-agent)" &&
+      ssh-add /home/arch-torification/.ssh/id_rsa.pub &&
+      git clone ssh://aur@aur.archlinux.org/arch-torification.git
+    '
