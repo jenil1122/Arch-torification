@@ -35,5 +35,12 @@ jobs:
             else \
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
             fi && \
-            su - arch-torification -c "eval \$(ssh-agent) && sudo chmod 600 /.ssh/jenil && sudo ssh-add /.ssh/jenil && & whoami & git clone ssh://aur@aur.archlinux.org/arch-torification.git"'
+            chown -R arch-torification:wheel /home/arch-torification/.ssh && \
+            su - arch-torification -c "
+              eval \$(ssh-agent) &&
+              sudo chmod 600 /home/arch-torification/.ssh/jenil &&
+              sudo ssh-add /home/arch-torification/.ssh/jenil &&
+              whoami &&
+              git clone ssh://aur@aur.archlinux.org/arch-torification.git
+            "'
         shell: /usr/bin/bash -e {0}
