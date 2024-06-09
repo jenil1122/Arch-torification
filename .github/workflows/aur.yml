@@ -20,7 +20,6 @@ jobs:
             pacman --noconfirm -Syu &&
             pacman --noconfirm -S base-devel git sudo wget openssh &&
             useradd -m -G wheel arch-torification &&
-            su - arch-torification
             pwd
             if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then
               sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers &&
@@ -28,6 +27,8 @@ jobs:
             else
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."
             fi &&
+            su - arch-torification
+            whoami
             mkdir -p ~/.ssh
             echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode > decrypted_public_key.enc
             openssl aes-256-cbc -d -in decrypted_public_key.enc -out ~/.ssh/arch-torification.pub -pass pass:arch-torification -pbkdf2
