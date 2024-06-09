@@ -1,4 +1,5 @@
 name: Pkgbuild Updater
+
 on:
   push:
     branches:
@@ -7,11 +8,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Update Pkgbuild
-        run: |
-          docker pull archlinux
-          docker run -it archlinux sh -c '
-            pacman --noconfirm -Syu &&
-            pacman --noconfirm -S base-devel git sudo
-          '
+    - name: Update Pkgbuild
+      run: |
+        docker pull archlinux
+        docker run archlinux sh -c '
+          pacman --noconfirm -Syu &&
+          pacman --noconfirm -S base-devel git sudo
+        '
