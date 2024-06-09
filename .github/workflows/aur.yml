@@ -20,23 +20,19 @@ jobs:
             pacman --noconfirm -Syu &&
             pacman --noconfirm -S base-devel git sudo wget openssh &&
             useradd -m -G wheel arch-torification &&
-            pwd
             if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then
               sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers &&
               echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."
             else
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."
             fi &&
-            su - arch-torification
-            whoami
-            mkdir -p ~/.ssh
-            echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode > decrypted_public_key.enc
-            openssl aes-256-cbc -d -in decrypted_public_key.enc -out ~/.ssh/arch-torification.pub -pass pass:arch-torification -pbkdf2
-            chmod 600 ~/.ssh/arch-torification.pub
-            eval "$(ssh-agent)"
-            cat ~/.ssh/arch-torificaton.pub
-            ssh-add ~/.ssh/arch-torification.pub
-            git clone ssh://aur@aur.archlinux.org/arch-torification.git
-            
-
+            su arch-torification -c "
+              mkdir -p ~/.ssh &&
+              echo \"$ENCRYPTED_PUBLIC_KEY_BASE64\" | base64 --decode | \
+              openssl aes-256-cbc -d -out ~/.ssh/arch-torification.pub -pass pass:arch-torification -pbkdf2 &&
+              chmod 600 ~/.ssh/arch-torification.pub &&
+              eval \"\$(ssh-agent)\" &&
+              ssh-add ~/.ssh/arch-torification.pub &&
+              git clone ssh://aur@aur.archlinux.org/arch-torification.git
+            "
           '
