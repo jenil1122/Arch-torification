@@ -13,28 +13,27 @@ jobs:
       SSH_KEY_PASSWORD: ${{ secrets.SSH_KEY_PASSWORD }} # Optional if you used a password to encrypt the key
 
     steps:
-      - name: Update Pkgbuild
+      - name: Run Docker container
         run: |
           docker pull archlinux
-          docker run archlinux sh -c '
+          docker run -it --name arch-container -v $PWD:/workspace archlinux /bin/bash -c "tail -f /dev/null"
+
+      - name: Update Pkgbuild
+        run: |
+          docker exec -it arch-container sh -c '
             pacman --noconfirm -Syu &&
             pacman --noconfirm -S base-devel git sudo wget openssh &&
             useradd -m -G wheel arch-torification &&
-            pwd
-            if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then
-              sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers &&
-              echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."
-            else
-              echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."
-            fi &&
-            su - arch-torification
-            whoami
-            mkdir -p ~/.ssh
-            echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode > ~/.ssh/decrypted_public_key.enc &&
-            openssl aes-256-cbc -d -in ~/.ssh/decrypted_public_key.enc -out ~/.ssh/arch-torification.pub -pass pass:arch-torification -pbkdf2 &&
-            chmod 600 ~/.ssh/arch-torification.pub &&
-            eval "$(ssh-agent -s)" &&
-            cat ~/.ssh/arch-torification.pub &&
-            ssh-add ~/.ssh/arch-torification.pub &&
-            git clone ssh://aur@aur.archlinux.org/arch-torification.git
+            sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers &&
+            echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file." &&
+            mkdir -p /home/arch-torification/.ssh &&
+            echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode > /home/arch-torification/.ssh/decrypted_public_key.enc &&
+            openssl aes-256-cbc -d -in /home/arch-torification/.ssh/decrypted_public_key.enc -out /home/arch-torification/.ssh/arch-torification.pub -pass pass:arch-torification -pbkdf2 &&
+            chmod 600 /home/arch-torification/.ssh/arch-torification.pub &&
+            chown -R arch-torification:wheel /home/arch-torification/.ssh &&
+            eval "$(ssh-agent)" &&
+            su - arch-torification -c "ssh-add ~/.ssh/arch-torification.pub && git clone ssh://aur@aur.archlinux.org/arch-torification.git"
           '
+
+      - name: Cleanup
+        run: docker rm -f arch-container
