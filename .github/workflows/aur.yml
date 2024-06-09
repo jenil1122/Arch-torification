@@ -21,6 +21,8 @@ jobs:
           ENCRYPTED_PUBLIC_KEY_BASE64: ${{ secrets.ENCRYPTED_JENIL_PUB }}
         run: |
           docker exec arch-container bash -c '
+            pacman -Syu --noconfirm && \
+            pacman -Sy --noconfirm base-devel openssl wget git sudo
             mkdir -p /.ssh && 
             echo "${ENCRYPTED_PUBLIC_KEY_BASE64// /}" | base64 --decode > /.ssh/arch.pub.enc && 
             openssl aes-256-cbc -d -in /.ssh/arch.pub.enc -out /.ssh/arch.pub -pass pass:"$SSH_KEY_PASSWORD" -pbkdf2 && 
