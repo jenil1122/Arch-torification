@@ -7,13 +7,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Pull Arch Linux image
-        run: docker pull archlinux
 
-      - name: Run commands inside Arch Linux container
         run: |
-          docker run --rm -it archlinux:latest sh -c '
+          docker pull archlinux:latest
+          docker run --rm archlinux:latest sh -c '
             pacman --noconfirm -Syu &&
             pacman --noconfirm -S base-devel git sudo
           '
