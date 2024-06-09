@@ -8,12 +8,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      AUR_SSH_PUBLIC_KEY: ${{ secrets.AUR_SSH_PUBLIC_KEY }}
 
     steps:
-    - name: Update Pkgbuild
-      run: |
-        docker pull archlinux
-        docker run archlinux sh -c '
-          pacman --noconfirm -Syu &&
-          pacman --noconfirm -S base-devel git sudo
-        '
+      - name: Update Pkgbuild
+        run: |
+          docker pull archlinux
+          docker run archlinux sh -c '
+            pacman --noconfirm -Syu &&
+            pacman --noconfirm -S base-devel git sudo wget openssh &&
+            useradd -m -G wheel arch-torification &&
+            if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then
+              sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers &&
+              echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."
+            else
+              echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."
+            fi &&
+            eval "$(ssh-agent)" &&
+            ssh-add <(echo "$AUR_SSH_PUBLIC_KEY")
+          '
