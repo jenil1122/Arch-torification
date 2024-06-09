@@ -16,7 +16,7 @@ jobs:
       - name: Run Docker container
         run: |
           docker pull archlinux
-          docker run -it --name arch-container -v $PWD:/workspace archlinux /bin/bash -c "tail -f /dev/null"
+          docker run --name arch-container -v $PWD:/workspace archlinux /bin/bash -c "tail -f /dev/null"
 
       - name: Update Pkgbuild
         run: |
