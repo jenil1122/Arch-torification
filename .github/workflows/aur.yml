@@ -17,8 +17,8 @@ jobs:
           
       - name: Decrypt SSH Key
         env:
-          SSH_KEY_PASSWORD: ${{ secrets.SSH_KEY_PASSWORD }}
-          ENCRYPTED_PUBLIC_KEY_BASE64: ${{ secrets.ENCRYPTED_PUBLIC_KEY_BASE64 }}
+          SSH_KEY_PASSWORD: ${{ secrets.ENCRYPTION_PASSWORD }}
+          ENCRYPTED_PUBLIC_KEY_BASE64: ${{ secrets.ENCRYPTED_JENIL_PUB }}
         run: |
           docker exec arch-container bash -c '\
             mkdir -p /.ssh && \
@@ -36,9 +36,4 @@ jobs:
             eval "$(ssh-agent)" && \
             ssh-add /.ssh/jenil.pub && \
             git clone ssh://aur@aur.archlinux.org/arch-torification.git'
-
-      - name: Cleanup Docker Container
-        run: |
-          docker stop arch-container
-          docker rm arch-container
-
+        shell: /usr/bin/bash -e {0}
