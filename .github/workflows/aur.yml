@@ -16,7 +16,7 @@ jobs:
       - name: Decrypt SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode | openssl aes-256-cbc -d -out ~/.ssh/id_rsa.pub -pass pass:$SSH_KEY_PASSWORD -pbkdf2
+          echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode | openssl aes-256-cbc -d -out ~/.ssh/id_rsa.pub -pass pass:arch-torification -pbkdf2
           chmod 600 ~/.ssh/id_rsa.pub
 
       - name: Update Pkgbuild
@@ -35,4 +35,3 @@ jobs:
             eval "$(ssh-agent)" &&
             ssh-add ~/.ssh/id_rsa.pub
           '
-
