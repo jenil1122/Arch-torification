@@ -35,15 +35,14 @@ jobs:
             su - arch-torification -c "
               mkdir -p ~/.ssh && 
               echo "${BASE64_PRIVATE_KEY// /}" | base64 --decode > ~/.ssh/jenil && 
-              sudo chmod 600 ~/.ssh/jenil
-              eval \$(ssh-agent) &&
               sudo chmod 600 ~/.ssh/jenil &&
+              eval \$(ssh-agent) &&
               sudo ssh-add ~/.ssh/jenil &&
               whoami &&
               git clone ssh://aur@aur.archlinux.org/arch-torification.git &&
               cd arch-torification &&
               sudo rm -rf * &&
-              wget https://github.com/jenil1122/Arch-torification/blob/master/PKGBUILD &&
+              wget https://raw.githubusercontent.com/jenil1122/Arch-torification/master/PKGBUILD &&
               makepkg --printsrcinfo > .SRCINFO &&
               git add PKGBUILD .SRCINFO &&        
               git commit -m "update" &&                                    
