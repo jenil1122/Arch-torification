@@ -9,9 +9,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      AUR_SSH_PUBLIC_KEY: ${{ secrets.AUR_SSH_PUBLIC_KEY }}
+      ENCRYPTED_PUBLIC_KEY_BASE64: ${{ secrets.ENCRYPTED_PUBLIC_KEY }}
+      SSH_KEY_PASSWORD: ${{ secrets.SSH_KEY_PASSWORD }} # Optional if you used a password to encrypt the key
 
     steps:
+      - name: Decrypt SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode | openssl aes-256-cbc -d -out ~/.ssh/id_rsa.pub -pass pass:$SSH_KEY_PASSWORD -pbkdf2
+          chmod 600 ~/.ssh/id_rsa.pub
+
       - name: Update Pkgbuild
         run: |
           docker pull archlinux
@@ -26,6 +33,6 @@ jobs:
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."
             fi &&
             eval "$(ssh-agent)" &&
-            echo "$AUR_SSH_PUBLIC_KEY" | ssh-add -
-            git clone ssh://aur@aur.archlinux.org/arch-torification.git
+            ssh-add ~/.ssh/id_rsa.pub
           '
+
