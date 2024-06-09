@@ -11,12 +11,12 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-docker@v2
 
-      - name: Build and run Arch Linux container
-        run: |
-          docker pull archlinux/base
-          docker run --name arch_container -d archlinux/base tail -f /dev/null
+      - name: Pull Arch Linux image
+        run: docker pull archlinux:latest
 
       - name: Run commands inside Arch Linux container
         run: |
-          docker exec arch_container pacman --noconfirm -Syu
-          docker exec arch_container pacman --noconfirm -S base-devel
+          docker run --rm -it archlinux:latest sh -c '
+            pacman --noconfirm -Syu &&
+            pacman --noconfirm -S base-devel git sudo
+          '
