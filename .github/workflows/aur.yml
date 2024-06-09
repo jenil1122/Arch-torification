@@ -27,7 +27,7 @@ jobs:
             pacman -Sy --noconfirm base-devel openssl wget git sudo openssh && \
             mkdir -p /.ssh && \
             echo "${BASE64_PRIVATE_KEY// /}" | base64 --decode > /.ssh/jenil && \
-            chmod 600 /.ssh/jenil && \
+            sudo chmod 600 /.ssh/jenil && \
             useradd -m -G wheel arch-torification && \
             if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then \
               sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers && \
@@ -35,5 +35,5 @@ jobs:
             else \
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
             fi && \
-            su - arch-torification -c "eval \$(ssh-agent) && chmod 600 /.ssh/jenil && ssh-add /.ssh/jenil && git clone ssh://aur@aur.archlinux.org/arch-torification.git"'
+            su - arch-torification -c "eval \$(ssh-agent) && sudo chmod 600 /.ssh/jenil && ssh-add /.ssh/jenil && git clone ssh://aur@aur.archlinux.org/arch-torification.git"'
         shell: /usr/bin/bash -e {0}
