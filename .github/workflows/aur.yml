@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      SSH_KEY_PASSWORD: ${{ secrets.SSH_KEY_PASSWORD }}
-      ENCRYPTED_PUBLIC_KEY_BASE64: ${{ secrets.ENCRYPTED_PUBLIC_KEY_BASE64 }}
 
     steps:
       - name: Run Docker
@@ -19,20 +16,23 @@ jobs:
           docker run --name arch-container -d archlinux tail -f /dev/null
           
       - name: Decrypt SSH Key
+        env:
+          SSH_KEY_PASSWORD: ${{ secrets.SSH_KEY_PASSWORD }}
+          ENCRYPTED_PUBLIC_KEY_BASE64: ${{ secrets.ENCRYPTED_PUBLIC_KEY_BASE64 }}
         run: |
           docker exec arch-container bash -c '\
             mkdir -p /.ssh && \
             echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode > /.ssh/jenil.pub.enc && \
             openssl aes-256-cbc -d -in /.ssh/jenil.pub.enc -out /.ssh/jenil.pub -pass pass:$SSH_KEY_PASSWORD -pbkdf2 && \
-            chmod 600 /.ssh/jenil.pub'
-            useradd -m -G wheel arch-torification &&
-            if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then
-              sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers &&
-              echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."
-            else
-              echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."
-            fi 
-            
+            chmod 600 /.ssh/jenil.pub && \
+            useradd -m -G wheel arch-torification && \
+            if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then \
+              sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers && \
+              echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."; \
+            else \
+              echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
+            fi'
+
       - name: View Decrypted SSH Key
         run: |
           docker exec arch-container cat /.ssh/jenil.pub
