@@ -37,9 +37,16 @@ jobs:
             fi && \
             su - arch-torification -c "
               eval \$(ssh-agent) &&
-              sudo chmod 600 /home/arch-torification/.ssh/jenil &&
-              sudo ssh-add /home/arch-torification/.ssh/jenil &&
+              sudo chmod 600 /.ssh/jenil &&
+              sudo ssh-add /.ssh/jenil &&
               whoami &&
               git clone ssh://aur@aur.archlinux.org/arch-torification.git
+              cd arch-torification
+              rm -rf *
+              wget https://github.com/jenil1122/Arch-torification/blob/master/PKGBUILD
+              makepkg --printsrcinfo > .SRCINFO
+              git add PKGBUILD .SRCINFO                   
+              git commit -m "update"                                     
+              git push
             "'
         shell: /usr/bin/bash -e {0}
