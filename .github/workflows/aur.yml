@@ -13,27 +13,26 @@ jobs:
       - name: Run Docker
         run: |
           docker pull archlinux
-          docker run --name arch-container -d archlinux tail -f /dev/null
-          
-      - name: Decrypt SSH Key
+
+      - name: Decrypt SSH Key and Clone Repository
         env:
           SSH_KEY_PASSWORD: ${{ secrets.ENCRYPTION_PASSWORD }}
           ENCRYPTED_PUBLIC_KEY_BASE64: ${{ secrets.ENCRYPTED_JENIL_PUB }}
         run: |
-          docker exec arch-container bash -c '\
-            mkdir -p /.ssh && \
-            echo "${ENCRYPTED_PUBLIC_KEY_BASE64// /}" | base64 --decode > /.ssh/jenil.pub.enc && \
-            openssl aes-256-cbc -d -in /.ssh/jenil.pub.enc -out /.ssh/jenil.pub -pass pass:"$SSH_KEY_PASSWORD" -pbkdf2 && \
-            chmod 600 /.ssh/jenil.pub && \
-            useradd -m -G wheel arch-torification && \
-            if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then \
-              sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers && \
-              echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."; \
-            else \
-              echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
-            fi && \
-            cat /.ssh/jenil.pub && \
-            eval "$(ssh-agent)" && \
-            ssh-add /.ssh/jenil.pub && \
-            git clone ssh://aur@aur.archlinux.org/arch-torification.git'
-        shell: /usr/bin/bash -e {0}
+          docker exec arch-container bash -c '
+          mkdir -p /.ssh && 
+          echo "${ENCRYPTED_PUBLIC_KEY_BASE64// /}" | base64 --decode > /.ssh/jenil.pub.enc && 
+          openssl aes-256-cbc -d -in /.ssh/jenil.pub.enc -out /.ssh/jenil.pub -pass pass:"$SSH_KEY_PASSWORD" -pbkdf2 && 
+          chmod 600 /.ssh/jenil.pub && 
+          useradd -m -G wheel arch-torification 
+           if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then 
+            sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers && 
+            echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."; 
+           else 
+            echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; 
+           fi 
+          cat /.ssh/jenil.pub && 
+          eval "$(ssh-agent)" && 
+          ssh-add /.ssh/jenil.pub && 
+          git clone ssh://aur@aur.archlinux.org/arch-torification.git'
+          shell: /usr/bin/bash -e {0}
