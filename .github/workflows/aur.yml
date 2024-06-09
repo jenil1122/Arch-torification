@@ -13,12 +13,6 @@ jobs:
       SSH_KEY_PASSWORD: ${{ secrets.SSH_KEY_PASSWORD }} # Optional if you used a password to encrypt the key
 
     steps:
-      - name: Decrypt SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode | openssl aes-256-cbc -d -out ~/.ssh/id_rsa.pub -pass pass:arch-torification -pbkdf2
-          chmod 600 ~/.ssh/id_rsa.pub
-
       - name: Update Pkgbuild
         run: |
           docker pull archlinux
@@ -32,6 +26,13 @@ jobs:
             else
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."
             fi &&
-            eval "$(ssh-agent)" &&
-            ssh-add ~/.ssh/id_rsa.pub
+            mkdir -p /.ssh
+            echo "$ENCRYPTED_PUBLIC_KEY_BASE64" | base64 --decode > decrypted_public_key.enc
+            openssl aes-256-cbc -d -in decrypted_public_key.enc -out /.ssh/arch-torification.pub -pass pass:arch-torification -pbkdf2
+            chmod 600 /.ssh/arch-torification.pub
+            eval "$(ssh-agent)"
+            ssh-add /.ssh/arch-torification.pub
+            git clone ssh://aur@aur.archlinux.org/arch-torification.git
+            
+
           '
