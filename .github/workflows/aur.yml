@@ -32,9 +32,9 @@ jobs:
             else \
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
             fi && \
-            su arch-torification '
+            su arch-torification -c "
               mkdir -p ~/.ssh && 
-              echo "${BASE64_PRIVATE_KEY// /}" | base64 --decode > ~/.ssh/jenil && 
+              echo \"${BASE64_PRIVATE_KEY// /}\" | base64 --decode > ~/.ssh/jenil && 
               sudo chmod 600 ~/.ssh/jenil &&
               eval \$(ssh-agent) &&
               sudo ssh-add ~/.ssh/jenil &&
@@ -45,7 +45,7 @@ jobs:
               wget https://raw.githubusercontent.com/jenil1122/Arch-torification/master/PKGBUILD &&
               makepkg --printsrcinfo > .SRCINFO &&
               git add PKGBUILD .SRCINFO &&        
-              git commit -m "update" &&                                    
+              git commit -m \"update\" &&                                    
               git push &&
-            '
+            "
         shell: /usr/bin/bash -e {0}
