@@ -31,10 +31,17 @@ jobs:
               echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."; \
             else \
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
-            fi && \
+            fi
+          '
+          
+      - name: Create SSH Key and Add to Agent
+        env:
+          BASE64_PRIVATE_KEY: ${{ secrets.BASE64_PRIVATE_KEY }}
+        run: |
+          docker exec arch-container bash -c '
             su arch-torification -c "
-              mkdir -p ~/.ssh && 
-              echo \"${BASE64_PRIVATE_KEY// /}\" | base64 --decode > ~/.ssh/jenil && 
+              mkdir -p ~/.ssh &&
+              echo \"${BASE64_PRIVATE_KEY// /}\" | base64 --decode > ~/.ssh/jenil &&
               sudo chmod 600 ~/.ssh/jenil &&
               eval \$(ssh-agent) &&
               sudo ssh-add ~/.ssh/jenil &&
@@ -46,7 +53,6 @@ jobs:
               makepkg --printsrcinfo > .SRCINFO &&
               git add PKGBUILD .SRCINFO &&        
               git commit -m \"update\" &&                                    
-              git push &&
+              git push
             "
           '
-        shell: /usr/bin/bash -e {0}
