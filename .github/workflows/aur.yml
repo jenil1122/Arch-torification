@@ -35,7 +35,5 @@ jobs:
             else \
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
             fi && \
-            eval $(ssh-agent) && \
-            ssh-add /.ssh/jenil && \
-            git clone ssh://aur@aur.archlinux.org/arch-torification.git'
+            su - arch-torification -c "eval \$(ssh-agent) && chmod 600 /.ssh/jenil && ssh-add /.ssh/jenil && git clone ssh://aur@aur.archlinux.org/arch-torification.git"'
         shell: /usr/bin/bash -e {0}
