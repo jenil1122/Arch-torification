@@ -48,4 +48,5 @@ jobs:
               git commit -m \"update\" &&                                    
               git push &&
             "
+          '
         shell: /usr/bin/bash -e {0}
