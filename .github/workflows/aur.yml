@@ -25,9 +25,6 @@ jobs:
           docker exec arch-container bash -c '
             pacman -Syu --noconfirm && \
             pacman -Sy --noconfirm base-devel openssl wget git sudo openssh && \
-            mkdir -p /.ssh && \
-            echo "${BASE64_PRIVATE_KEY// /}" | base64 --decode > /.ssh/jenil && \
-            sudo chmod 600 /.ssh/jenil && \
             useradd -m -G wheel arch-torification && \
             if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then \
               sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers && \
@@ -37,7 +34,8 @@ jobs:
             fi && \
             su - arch-torification -c "
               mkdir -p ~/.ssh && 
-              echo "${BASE64_PRIVATE_KEY// /}" | base64 --decode > ~/.ssh/jenil && \
+              echo "${BASE64_PRIVATE_KEY// /}" | base64 --decode > ~/.ssh/jenil && 
+              sudo chmod 600 ~/.ssh/jenil
               eval \$(ssh-agent) &&
               sudo chmod 600 ~/.ssh/jenil &&
               sudo ssh-add ~/.ssh/jenil &&
