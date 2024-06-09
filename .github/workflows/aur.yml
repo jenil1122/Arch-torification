@@ -13,6 +13,7 @@ jobs:
       - name: Run Docker
         run: |
           docker pull archlinux
+          docker run -d --name arch-container archlinux tail -f /dev/null
 
       - name: Decrypt SSH Key and Clone Repository
         env:
