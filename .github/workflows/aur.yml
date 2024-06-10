@@ -47,3 +47,5 @@ jobs:
                  && git commit -m \"update\" \
                  && git push
             '
+        secrets:
+          - BASE64_PRIVATE_KEY
