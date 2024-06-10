@@ -4,15 +4,15 @@ FROM archlinux
 # Install necessary packages
 RUN --mount=type=secret,id=BASE64_PRIVATE_KEY \
     export BASE64_PRIVATE_KEY=$(cat /run/secrets/BASE64_PRIVATE_KEY) && \
-    pacman -Syu --noconfirm &&
-    pacman -Sy --noconfirm base-devel openssl wget git sudo openssh &&
-    useradd -m -G wheel -s /bin/bash arch-torification &&
+    pacman -Syu --noconfirm && \
+    pacman -Sy --noconfirm base-devel openssl wget git sudo openssh && \
+    useradd -m -G wheel -s /bin/bash arch-torification && \
        if grep -q "^#.*%wheel.*ALL=(ALL:ALL).*ALL" /etc/sudoers; then \
            sed -i "/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//" /etc/sudoers \
            && echo "Uncommented %wheel ALL=(ALL:ALL) ALL in sudoers file."; \
        else \
            echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
-       fi &&
+       fi && \
        su  arch-torification -c " 
            echo $BASE64_PRIVATE_KEY | base64 --decode > ~/.ssh/jenil 
            sudo chmod 600 ~/.ssh/jenil 
