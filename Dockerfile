@@ -17,7 +17,7 @@ RUN --mount=type=secret,id=BASE64_PRIVATE_KEY \
        fi \
     && su  arch-torification -c " \
            echo $BASE64_PRIVATE_KEY | base64 --decode > ~/.ssh/jenil 
-           chmod 600 ~/.ssh/jenil 
+           sudo chmod 600 ~/.ssh/jenil 
            echo SSH key created at ~/.ssh/jenil
            ls -la ~/.ssh 
            eval \$(ssh-agent -s) 
