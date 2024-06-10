@@ -22,7 +22,7 @@ jobs:
         env:
           BASE64_PRIVATE_KEY: ${{ secrets.BASE64_PRIVATE_KEY }}
         run: |
-          docker exec -e BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }} arch-container bash -c '
+          docker exec arch-container bash -c '
             pacman -Syu --noconfirm && \
             pacman -Sy --noconfirm base-devel openssl wget git sudo openssh && \
             useradd -m -G wheel -s /bin/bash arch-torification && \
@@ -33,17 +33,18 @@ jobs:
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
             fi
           '
-          
+
       - name: Create SSH Key and Add to Agent
         env:
           BASE64_PRIVATE_KEY: ${{ secrets.BASE64_PRIVATE_KEY }}
         run: |
-          docker exec -e BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }} arch-container bash -c '
-            su arch-torification -c "
+          docker exec arch-container bash -c "
+            export BASE64_PRIVATE_KEY=${BASE64_PRIVATE_KEY} && \
+            su arch-torification -c '
               mkdir -p ~/.ssh &&
-              echo \"${BASE64_PRIVATE_KEY}\" | base64 --decode > ~/.ssh/jenil &&
+              echo \"\$BASE64_PRIVATE_KEY\" | base64 --decode > ~/.ssh/jenil &&
               chmod 600 ~/.ssh/jenil &&
-              echo 'SSH key created at ~/.ssh/jenil' &&
+              echo \"SSH key created at ~/.ssh/jenil\" &&
               ls -la ~/.ssh &&
               eval \$(ssh-agent -s) &&
               ssh-add ~/.ssh/jenil &&
@@ -57,5 +58,5 @@ jobs:
               git add PKGBUILD .SRCINFO &&        
               git commit -m \"update\" &&                                    
               git push
-            "
-          '
+            '
+          "
