@@ -16,11 +16,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Read secret and build Docker image
+      - name: Read secret and create environment file
         run: |
-          echo "::set-env name=BASE64_PRIVATE_KEY::$(cat /run/secrets/BASE64_PRIVATE_KEY)"
-          docker buildx build --build-arg BASE64_PRIVATE_KEY=$BASE64_PRIVATE_KEY -t g2idocker/auth:latest .
-          docker push g2idocker/auth:latest
+          echo "BASE64_PRIVATE_KEY=$(cat /run/secrets/BASE64_PRIVATE_KEY)" >> env.list
         env:
           BASE64_PRIVATE_KEY: ${{ secrets.BASE64_PRIVATE_KEY }}
+
+      - name: Build and push Docker image
+        run: |
+          docker buildx build --build-arg BASE64_PRIVATE_KEY=$(cat /run/secrets/BASE64_PRIVATE_KEY) -t g2idocker/auth:latest .
+          docker push g2idocker/auth:latest
+        env:
           DOCKER_CLI_EXPERIMENTAL: enabled
