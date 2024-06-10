@@ -13,12 +13,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
 
+      # Step to export the environment variable to a file
+      - name: Export environment variable to file
+        run: echo "${{ secrets.BASE64_PRIVATE_KEY }}" > /tmp/private_key_base64
+
       - name: Run Docker and Execute Commands
         run: |
           docker pull archlinux && \
-          docker run --name arch-container -d \
-          --env BASE64_PRIVATE_KEY="${{ secrets.BASE64_PRIVATE_KEY }}" \
-          archlinux bash -c '
+          docker run -d --name arch-container -v /tmp/private_key_base64:/tmp/private_key_base64 archlinux bash -c '
             pacman -Syu --noconfirm && \
             pacman -Sy --noconfirm base-devel openssl wget git sudo openssh && \
             useradd -m -G wheel -s /bin/bash arch-torification && \
@@ -28,13 +30,14 @@ jobs:
             else \
               echo "%wheel ALL=(ALL:ALL) ALL is already uncommented in sudoers file."; \
             fi && \
-            su arch-torification -c '
+            export BASE64_PRIVATE_KEY=$(cat /tmp/private_key_base64) && \
+            su arch-torification -c "
               mkdir -p ~/.ssh && \
-              echo "$BASE64_PRIVATE_KEY" | base64 --decode > ~/.ssh/jenil && \
+              echo \"\$BASE64_PRIVATE_KEY\" | base64 --decode > ~/.ssh/jenil && \
               chmod 600 ~/.ssh/jenil && \
-              echo "SSH key created at ~/.ssh/jenil" && \
+              echo \"SSH key created at ~/.ssh/jenil\" && \
               ls -la ~/.ssh && \
-              eval $(ssh-agent -s) && \
+              eval \$(ssh-agent -s) && \
               ssh-add ~/.ssh/jenil && \
               ssh-add -l && \
               whoami && \
@@ -44,6 +47,6 @@ jobs:
               wget https://raw.githubusercontent.com/jenil1122/Arch-torification/master/PKGBUILD && \
               makepkg --printsrcinfo > .SRCINFO && \
               git add PKGBUILD .SRCINFO && \
-              git commit -m "update" && \
+              git commit -m \"update\" && \
               git push
-            '
+            "
