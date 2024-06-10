@@ -22,7 +22,7 @@ jobs:
         env:
           BASE64_PRIVATE_KEY: ${{ secrets.BASE64_PRIVATE_KEY }}
         run: |
-          docker exec arch-container bash -c '
+          docker exec -e BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }} arch-container bash -c '
             pacman -Syu --noconfirm && \
             pacman -Sy --noconfirm base-devel openssl wget git sudo openssh && \
             useradd -m -G wheel -s /bin/bash arch-torification && \
@@ -38,13 +38,16 @@ jobs:
         env:
           BASE64_PRIVATE_KEY: ${{ secrets.BASE64_PRIVATE_KEY }}
         run: |
-          docker exec arch-container bash -c '
+          docker exec -e BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }} arch-container bash -c '
             su arch-torification -c "
               mkdir -p ~/.ssh &&
-              echo \"${BASE64_PRIVATE_KEY// /}\" | base64 --decode > ~/.ssh/jenil &&
-              sudo chmod 600 ~/.ssh/jenil &&
-              eval \$(ssh-agent) &&
-              sudo ssh-add ~/.ssh/jenil &&
+              echo \"${BASE64_PRIVATE_KEY}\" | base64 --decode > ~/.ssh/jenil &&
+              chmod 600 ~/.ssh/jenil &&
+              echo 'SSH key created at ~/.ssh/jenil' &&
+              ls -la ~/.ssh &&
+              eval \$(ssh-agent -s) &&
+              ssh-add ~/.ssh/jenil &&
+              ssh-add -l &&
               whoami &&
               git clone ssh://aur@aur.archlinux.org/arch-torification.git &&
               cd arch-torification &&
