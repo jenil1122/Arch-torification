@@ -1,4 +1,4 @@
-FROM archlinux:latest
+FROM manjarolinux
 
 # Install necessary packages
 RUN pacman -Syu --noconfirm && \
