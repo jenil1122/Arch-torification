@@ -26,6 +26,4 @@ jobs:
           tags: user/app:latest
           secrets: |
             BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }}
-
-      - name: Build Docker image
-        run: docker build .
+          run: docker build .
