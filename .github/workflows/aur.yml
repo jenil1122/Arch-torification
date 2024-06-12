@@ -26,4 +26,8 @@ jobs:
           tags: user/app:latest
           secrets: |
             BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }}
-          run: docker build .
+          run: | 
+            git pull archlinux
+            docker build .
+            
+          
