@@ -1,4 +1,4 @@
-name: Build Docker Image
+name: Build and push
 
 on:
   push:
@@ -25,4 +25,13 @@ jobs:
         sudo systemctl start docker
 
     - name: Build Docker image
-      run: sudo docker build . --build-arg BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }}
+      run: sudo docker build --build-arg BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }} -t your-image-name .
+
+    - name: Build and push Docker image
+      id: docker_build
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: g2idocker/auth:latest
+        secrets: |
+          BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }}
