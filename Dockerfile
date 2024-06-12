@@ -1,4 +1,4 @@
-FROM archlinux:multilib-devel-20240101.0.204074
+FROM	 archlinux:latest
 
 # Install necessary packages
 RUN pacman -Syu --noconfirm && \
