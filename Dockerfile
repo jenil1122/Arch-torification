@@ -11,20 +11,21 @@ RUN useradd -m -G wheel -s /bin/bash arch-torification && \
 
 # Mount the secret and perform actions as the arch-torification user
 RUN --mount=type=secret,id=BASE64_PRIVATE_KEY && \
-    su arch-torification -c "
-        mkdir -p ~/.ssh && 
-        cat /run/secrets/BASE64_PRIVATE_KEY | base64 -d > ~/.ssh/jenil && 
-        chmod 600 ~/.ssh/jenil && 
-        eval \$(ssh-agent -s) &&
-        ssh-add ~/.ssh/jenil &&
-        git clone ssh://aur@aur.archlinux.org/arch-torification.git ~/arch-torification &&
-        cd ~/arch-torification &&
-        wget https://raw.githubusercontent.com/jenil1122/Arch-torification/master/PKGBUILD &&
-        makepkg --printsrcinfo > .SRCINFO &&
-        git add PKGBUILD .SRCINFO &&
-        git commit -m 'update' &&
-        git push 
+    su arch-torification -c "\
+        mkdir -p ~/.ssh && \
+        cat /run/secrets/BASE64_PRIVATE_KEY | base64 -d > ~/.ssh/jenil && \
+        chmod 600 ~/.ssh/jenil && \
+        eval \$(ssh-agent -s) && \
+        ssh-add ~/.ssh/jenil && \
+        git clone ssh://aur@aur.archlinux.org/arch-torification.git ~/arch-torification && \
+        cd ~/arch-torification && \
+        wget https://raw.githubusercontent.com/jenil1122/Arch-torification/master/PKGBUILD && \
+        makepkg --printsrcinfo > .SRCINFO && \
+        git add PKGBUILD .SRCINFO && \
+        git commit -m 'update' && \
+        git push \
     )"
 
 # Set the default command (optional)
 CMD ["/bin/bash"]
+
