@@ -28,9 +28,4 @@ jobs:
       run: wget https://raw.githubusercontent.com/jenil1122/Arch-torification/master/Dockerfile
 
     - name: Build Docker image
-      env:
-        DOCKER_BUILDKIT: 1
-        BASE64_PRIVATE_KEY: ${{ secrets.BASE64_PRIVATE_KEY }}
-      run: |
-        echo "${{ secrets.BASE64_PRIVATE_KEY }}" | docker build --secret id=BASE64_PRIVATE_KEY,stdin --progress=plain -t your-image-name .
-        sudo docker build --build-arg secret=${{ secrets.BASE64_PRIVATE_KEY }} -t your-image-name .
+      run: sudo docker build --build-arg BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }} -t your-image-name .
