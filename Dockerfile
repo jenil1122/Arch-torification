@@ -1,4 +1,3 @@
-# Use archlinux as the base image
 FROM archlinux
 
 # Install necessary packages
@@ -11,7 +10,8 @@ RUN useradd -m -G wheel -s /bin/bash arch-torification && \
 
 # Mount the secret and perform actions as the arch-torification user
 RUN --mount=type=secret,id=BASE64_PRIVATE_KEY \
-    su arch-torification -c "\
+    export BASE64_PRIVATE_KEY=$(cat /run/secrets/BASE64_PRIVATE_KEY) && \
+    su arch-torification -c " \
         mkdir -p ~/.ssh && \
         cat /run/secrets/BASE64_PRIVATE_KEY | base64 -d > ~/.ssh/jenil && \
         chmod 600 ~/.ssh/jenil && \
