@@ -27,7 +27,7 @@ jobs:
           secrets: |
             BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }}
           run: | 
-            git pull archlinux
+            docker pull archlinux
             docker build .
             
           
