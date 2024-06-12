@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.2
 # Use archlinux as the base image
 FROM archlinux
 
@@ -12,10 +11,9 @@ RUN useradd -m -G wheel -s /bin/bash arch-torification && \
 
 # Mount the secret and perform actions as the arch-torification user
 RUN --mount=type=secret,id=BASE64_PRIVATE_KEY \
-    BASE64_PRIVATE_KEY=$(cat /run/secrets/BASE64_PRIVATE_KEY) && \
-    su arch-torification -c " \
+    su arch-torification -c "\
         mkdir -p ~/.ssh && \
-        echo $BASE64_PRIVATE_KEY | base64 --decode > ~/.ssh/jenil && \
+        cat /run/secrets/BASE64_PRIVATE_KEY | base64 -d > ~/.ssh/jenil && \
         chmod 600 ~/.ssh/jenil && \
         eval \$(ssh-agent -s) && \
         ssh-add ~/.ssh/jenil && \
@@ -25,7 +23,8 @@ RUN --mount=type=secret,id=BASE64_PRIVATE_KEY \
         makepkg --printsrcinfo > .SRCINFO && \
         git add PKGBUILD .SRCINFO && \
         git commit -m 'update' && \
-        git push"
+        git push \
+    )"
 
 # Set the default command (optional)
 CMD ["/bin/bash"]
