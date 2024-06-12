@@ -34,5 +34,5 @@ jobs:
         sudo systemctl start docker
 
     - name: Build Docker image
-      run: sudo docker . build --build-arg BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }} 
+      run: sudo docker build . --build-arg BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }} 
 
