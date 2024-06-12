@@ -9,9 +9,9 @@ RUN useradd -m -G wheel -s /bin/bash arch-torification && \
     sed -i '/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//' /etc/sudoers
 
 # Mount the secret and perform actions as the arch-torification user
-RUN --mount=type=secret,id=BASE64_PRIVATE_KEY \
-    export BASE64_PRIVATE_KEY=$(cat /run/secrets/BASE64_PRIVATE_KEY) && \
-    su arch-torification -c " \
+RUN --mount=type=secret,id=BASE64_PRIVATE_KEY 
+
+RUN su arch-torification -c " \
         mkdir -p ~/.ssh && \
         cat /run/secrets/BASE64_PRIVATE_KEY | base64 -d > ~/.ssh/jenil && \
         chmod 600 ~/.ssh/jenil && \
