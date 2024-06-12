@@ -28,4 +28,4 @@ jobs:
       run: wget https://raw.githubusercontent.com/jenil1122/Arch-torification/master/Dockerfile
 
     - name: Build Docker image
-      run: sudo docker build --build-arg BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }} -t your-image-name .
+      run: sudo docker build --build-arg BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }} -t arch -f Dockerfile .
