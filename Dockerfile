@@ -10,7 +10,7 @@ RUN useradd -m -G wheel -s /bin/bash arch-torification && \
     sed -i '/^#.*%wheel.*ALL=(ALL:ALL).*ALL/s/^#//' /etc/sudoers
 
 # Mount the secret and perform actions as the arch-torification user
-RUN --mount=type=secret,id=BASE64_PRIVATE_KEY && \
+RUN --mount=type=secret,id=BASE64_PRIVATE_KEY \
     su arch-torification -c "\
         mkdir -p ~/.ssh && \
         cat /run/secrets/BASE64_PRIVATE_KEY | base64 -d > ~/.ssh/jenil && \
@@ -24,8 +24,4 @@ RUN --mount=type=secret,id=BASE64_PRIVATE_KEY && \
         git add PKGBUILD .SRCINFO && \
         git commit -m 'update' && \
         git push \
-    )"
-
-# Set the default command (optional)
-CMD ["/bin/bash"]
-
+    "
