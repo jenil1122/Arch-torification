@@ -1,8 +1,13 @@
-FROM	 archlinux:latest
+FROM archlinux:latest
 
 # Install necessary packages
 RUN pacman -Syu --noconfirm && \
     pacman -Sy --noconfirm base-devel openssl wget git sudo openssh
+
+RUN  /usr/bin/ssh-keygen -A
+RUN  sed -i -e 's/^UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config
+EXPOSE	 22
+CMD	 ["/usr/sbin/sshd", "-D"]
 
 # Create user and setup sudo
 RUN useradd -m -G wheel -s /bin/bash arch-torification && \
